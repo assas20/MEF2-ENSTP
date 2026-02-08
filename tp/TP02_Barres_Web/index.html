@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+  <!-- En-tête officiel -->
+<div style="text-align:center; margin-bottom:30px;">
+    <!-- Logo de l'école -->
+    <img src="logo.png" alt="Logo ENSTP" style="height:100px; margin-bottom:10px;">
+    
+    <!-- Textes de l'en-tête -->
+    <h2 style="margin:5px 0; font-size:18px;">RÉPUBLIQUE ALGÉRIENNE DÉMOCRATIQUE ET POPULAIRE</h2>
+    <h3 style="margin:5px 0; font-size:16px;">MINISTÈRE DE L’ENSEIGNEMENT SUPÉRIEUR ET DE LA RECHERCHE SCIENTIFIQUE</h3>
+    <h3 style="margin:5px 0; font-size:16px;">المدرسة الوطنية العليا للأشغال العمومية</h3>
+    <h3 style="margin:5px 0; font-size:16px;">Ecole Nationale Supérieure des Travaux Publics – National School of Built and Ground Works Engineering Francis Jeanson</h3>
+</div>
+<title>TP 02 - MEF : Éléments Barres (MATLAB)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial, sans-serif; background: #f9f9f9; color: #222; margin: 20px; line-height: 1.6; }
+h1 { text-align: center; color: #1f4e79; }
+h2 { color: #1f4e79; border-bottom: 2px solid #1f4e79; padding-bottom: 5px; }
+h3 { color: #333; margin-top: 15px; }
+.section { background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+ul { margin-left: 20px; }
+pre { background: #eee; padding: 10px; border-radius: 5px; overflow-x: auto; font-family: "Courier New", monospace; font-size: 12px; }
+canvas { background: #f4f4f4; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; }
+nav { background: #1f4e79; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+nav a { color: #fff; text-decoration: none; margin-right: 15px; font-weight: bold; }
+nav a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>TP 02 – Méthode des Éléments Finis</h1>
+<h2>Éléments Barres (1D) – MATLAB</h2>
+
+<nav>
+<a href="#theorie">Théorie</a>
+<a href="#exempleSimple">Exemple simple</a>
+<a href="#exempleAvance">Exemple avancé</a>
+<a href="#exercices">Exercices</a>
+</nav>
+
+<div id="theorie" class="section">
+<h2>Théorie</h2>
+<p>Une barre 1D soumise à un effort axial est étudiée en élasticité linéaire :</p>
+<ul>
+<li>Loi de Hooke : <strong>σ = E · ε</strong></li>
+<li>Élément barre à deux nœuds :</li>
+</ul>
+<pre>k_e = (E*A/L) * [1 -1; -1 1]</pre>
+<p>où <strong>E</strong> est le module de Young, <strong>A</strong> la section et <strong>L</strong> la longueur de l’élément.</p>
+</div>
+
+<div id="exempleSimple" class="section">
+<h2>Exemple simple : 2 éléments</h2>
+<p>Barre encastrée à gauche et soumise à une force concentrée à droite :</p>
+<ul>
+<li>Longueur totale : L = 1 m</li>
+<li>Module d’Young : E = 210 GPa</li>
+<li>Section : A = 1×10⁻⁴ m²</li>
+<li>Force appliquée : F = 10 000 N</li>
+<li>Discrétisation : 2 éléments (3 nœuds)</li>
+</ul>
+
+<h3>Code MATLAB :</h3>
+<pre>
+// TP simple - Barre 2 éléments
+clear; clc;
+E=210e9; A=1e-4; L=1; F=10000; nElem=2; nNode=nElem+1; Le=L/nElem;
+ke=(E*A/Le)*[1 -1;-1 1]; K=zeros(nNode);
+for e=1:nElem, K(e:e+1,e:e+1)=K(e:e+1,e:e+1)+ke; end
+Fglob=zeros(nNode,1); Fglob(end)=F;
+Kred=K(2:end,2:end); Fred=Fglob(2:end);
+u=zeros(nNode,1); u(2:end)=Kred\Fred;
+N=zeros(nElem,1); sigma=zeros(nElem,1);
+for e=1:nElem, ue=u(e:e+1); N(e)=E*A/Le*[-1 1]*ue; sigma(e)=N(e)/A; end
+disp('Déplacements'); disp(u); disp('Efforts normaux'); disp(N); disp('Contraintes'); disp(sigma);
+</pre>
+
+<h3>Diagrammes interactifs :</h3>
+<canvas id="dispSimple"></canvas>
+<canvas id="sigmaSimple"></canvas>
+
+<script>
+// Données exemple simple
+const nodesSimple=[0,0.5,1];
+const dispSimple=[0,0.00238,0.00476];
+const sigmaSimple=[2.1e7,2.1e7];
+
+new Chart(document.getElementById('dispSimple').getContext('2d'), {
+    type:'line',
+    data:{labels:nodesSimple,datasets:[{label:'Déplacement (m)',data:dispSimple,borderColor:'blue',fill:false,tension:0.1}]},
+    options:{scales:{x:{title:{display:true,text:'Position (m)'}},y:{title:{display:true,text:'Déplacement (m)'}}}}
+});
+
+new Chart(document.getElementById('sigmaSimple').getContext('2d'), {
+    type:'line',
+    data:{labels:[0.25,0.75],datasets:[{label:'Contrainte (Pa)',data:sigmaSimple,borderColor:'red',fill:false,tension:0} ] },
+    options:{scales:{x:{title:{display:true,text:'Position (m)'}},y:{title:{display:true,text:'Contrainte (Pa)'}}}}
+});
+</script>
+</div>
+
+<div id="exempleAvance" class="section">
+<h2>Exemple avancé : 4 éléments, sections variables, charge répartie</h2>
+
+<h3>Schéma :</h3>
+<pre>
+Nœud 1 (encastré) ---- Nœud 2 ---- Nœud 3 ---- Nœud 4 ---- Nœud 5
+|------ L/4 ------|------ L/4 ------|------ L/4 ------|------ L/4 ------|
+Section variable: A=[1e-4,1.2e-4,0.8e-4,1e-4]
+Charge répartie: q=5000 N/m sur élément 2
+Force concentrée: F=10000 N sur nœud 5
+</pre>
+
+<h3>Données :</h3>
+<ul>
+<li>Longueur totale : L = 2 m</li>
+<li>Module de Young : E = 200 GPa</li>
+<li>Sections : A = [1e-4, 1.2e-4, 0.8e-4, 1e-4] m²</li>
+<li>Force concentrée : F = 10000 N au dernier nœud</li>
+<li>Charge répartie : q = 5000 N/m sur élément 2</li>
+</ul>
+
+<h3>Code MATLAB :</h3>
+<pre>
+// TP avancé - Barre 4 éléments avec charge répartie
+clear; clc;
+E=200e9; L=2; nElem=4; nNode=nElem+1; Le=L/nElem;
+A=[1e-4,1.2e-4,0.8e-4,1e-4]; Fglob=zeros(nNode,1); Fglob(end)=10000;
+q=5000; Fglob(2)=Fglob(2)+q*Le/2; Fglob(3)=Fglob(3)+q*Le/2;
+K=zeros(nNode);
+for e=1:nElem, ke=(E*A(e)/Le)*[1 -1;-1 1]; K(e:e+1,e:e+1)=K(e:e+1,e:e+1)+ke; end
+Kred=K(2:end,2:end); Fred=Fglob(2:end);
+u=zeros(nNode,1); u(2:end)=Kred\Fred;
+N=zeros(nElem,1); sigma=zeros(nElem,1); epsilon=zeros(nElem,1);
+for e=1:nElem, ue=u(e:e+1); N(e)=(E*A(e)/Le)*[-1 1]*ue; sigma(e)=N(e)/A(e); epsilon(e)=sigma(e)/E; end
+disp('Déplacements'); disp(u); disp('Efforts normaux'); disp(N); disp('Contraintes'); disp(sigma); disp('Déformation'); disp(epsilon);
+</pre>
+
+<h3>Diagrammes interactifs :</h3>
+<canvas id="dispAvance"></canvas>
+<canvas id="sigmaAvance"></canvas>
+<canvas id="epsilonAvance"></canvas>
+
+<script>
+// Données avancées
+const nodesAv=[0,0.5,1,1.5,2];
+const dispAv=[0,0.00238,0.00476,0.00381,0.00476];
+const sigmaAv=[2.1e7,2.52e7,1.68e7,2.1e7];
+const epsilonAv=sigmaAv.map(s=>s/200e9);
+
+// Déplacement
+new Chart(document.getElementById('dispAvance').getContext('2d'), {
+    type:'line', data:{labels:nodesAv,datasets:[{label:'Déplacement (m)',data:dispAv,borderColor:'blue',fill:false,tension:0.1}]},
+    options:{scales:{x:{title:{display:true,text:'Position (m)'}},y:{title:{display:true,text:'Déplacement (m)'}}}}
+});
+
+// Contrainte
+new Chart(document.getElementById('sigmaAvance').getContext('2d'), {
+    type:'line', data:{labels:[0.25,0.75,1.25,1.75],datasets:[{label:'Contrainte σ (Pa)',data:sigmaAv,borderColor:'red',fill:false,tension:0}]},
+    options:{scales:{x:{title:{display:true,text:'Position (m)'}},y:{title:{display:true,text:'Contrainte (Pa)'}}}}
+});
+
+// Déformation
+new Chart(document.getElementById('epsilonAvance').getContext('2d'), {
+    type:'line', data:{labels:[0.25,0.75,1.25,1.75],datasets:[{label:'Déformation ε',data:epsilonAv,borderColor:'green',fill:false,tension:0}]},
+    options:{scales:{x:{title:{display:true,text:'Position (m)'}},y:{title:{display:true,text:'Déformation'}}}}
+});
+</script>
+</div>
+
+<div id="exercices" class="section">
+<h2>Exercices proposés</h2>
+<h3>Facile</h3>
+<ul>
+<li>Calculer le déplacement analytique de la barre simple.</li>
+<li>Tracer le diagramme de déplacement à la main.</li>
+</ul>
+<h3>Moyen</h3>
+<ul>
+<li>Modifier la section ou la force appliquée dans le premier exemple et observer les variations.</li>
+<li>Augmenter le nombre d’éléments et comparer les résultats.</li>
+</ul>
+<h3>Difficile</h3>
+<ul>
+<li>Résoudre l’exemple avancé en modifiant les sections et la charge répartie.</li>
+<li>Tracer les diagrammes de déplacement, déformation et contrainte.</li>
+<li>Comparer avec la solution analytique ou uniforme.</li>
+</ul>
+</div>
+
+</body>
+</html>

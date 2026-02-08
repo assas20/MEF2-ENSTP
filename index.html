@@ -1,0 +1,3276 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENSTP | FEM Education Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        arabic: ['Noto Naskh Arabic', 'serif'],
+                    },
+                    colors: {
+                        enstp: {
+                            navy: '#0A1628',
+                            blue: '#1E3A8A',
+                            gold: '#D4AF37',
+                            goldLight: '#F4E4BC',
+                            cream: '#FAF9F6',
+                            gray: '#F5F5F5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #FAF9F6;
+        color: #0A1628;
+        overflow-x: hidden;
+    }
+    .font-serif { font-family: 'Playfair Display', serif; }
+    .font-arabic { font-family: 'Noto Naskh Arabic', serif; }
+    .gradient-gold { background: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%); }
+    .gradient-navy { background: linear-gradient(135deg, #0A1628 0%, #1E3A8A 100%); }
+    .text-gradient-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .glass-premium {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .card-luxury {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .card-luxury:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(212, 175, 55, 0.25);
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+    }
+    .nav-item {
+        position: relative;
+        padding: 0.5rem 0;
+    }
+    .nav-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #D4AF37;
+        transition: width 0.3s ease;
+    }
+    .nav-item:hover::after, .nav-item.active::after {
+        width: 100%;
+    }
+    #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.3;
+    }
+    .editable-table input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 0.875rem;
+    }
+    .editable-table input:focus {
+        outline: none;
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+    .editable-table select {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+    .editable-table select:focus {
+        outline: none;
+        border-color: #D4AF37;
+    }
+    .presence-present { background-color: #dcfce7; color: #166534; }
+    .presence-absent { background-color: #fee2e2; color: #991b1b; }
+    .presence-justified { background-color: #dbeafe; color: #1e40af; }
+    .back-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 40;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 15px 40px rgba(212, 175, 55, 0.5);
+    }
+    .university-card-new {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .university-card-new:hover {
+        transform: translateY(-5px);
+        border-color: #D4AF37;
+        box-shadow: 0 20px 40px rgba(10, 22, 40, 0.15);
+    }
+    .university-header {
+        height: 120px;
+        position: relative;
+        overflow: hidden;
+    }
+    .university-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 4px solid white;
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .school-header {
+        background: linear-gradient(135deg, #0A1628 0%, #1E3A8A 50%, #0A1628 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .school-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4AF37' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .logo-container {
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        border: 4px solid #D4AF37;
+        overflow: hidden;
+    }
+    .logo-container img {
+        width: 90%;
+        height: 90%;
+        object-fit: contain;
+    }
+    .trilingual-name {
+        text-align: center;
+        line-height: 1.6;
+    }
+    .trilingual-name .fr { font-family: 'Playfair Display', serif; }
+    .trilingual-name .ar { font-family: 'Noto Naskh Arabic', serif; font-size: 1.1em; }
+    .trilingual-name .en { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.5px; }
+    .pdf-container {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+    .pdf-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .pdf-item {
+        transition: all 0.2s ease;
+    }
+    .pdf-item:hover {
+        background-color: #FAF9F6;
+        transform: translateX(5px);
+    }
+    .td-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .td-card:hover {
+        transform: translateY(-5px);
+        border-color: #D4AF37;
+        box-shadow: 0 15px 35px rgba(10, 22, 40, 0.1);
+    }
+    .video-category-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .video-category-card:hover {
+        border-color: #D4AF37;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+    }
+    .code-tab {
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .code-tab.active {
+        border-bottom-color: #D4AF37;
+        color: #D4AF37;
+        font-weight: 600;
+    }
+    .code-block {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        overflow-x: auto;
+    }
+    .scholar-icon { color: #4285F4; }
+    .researchgate-icon { color: #00CCBB; }
+    .orcid-icon { color: #A6CE39; }
+    .contact-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    .contact-card:hover {
+        box-shadow: 0 20px 40px rgba(10, 22, 40, 0.1);
+        transform: translateY(-5px);
+    }
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .social-link:hover {
+        transform: translateY(-2px);
+    }
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        min-width: 250px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+        border: 1px solid #e5e7eb;
+    }
+    .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .dropdown-item:hover {
+        background: #FAF9F6;
+        color: #D4AF37;
+    }
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+    .exam-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .exam-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .exam-item:hover {
+        background: #FAF9F6;
+    }
+    .exam-item:hover .exam-title {
+        color: #D4AF37;
+    }
+    
+    /* Contact Photos - NEW STYLES */
+    .contact-photo-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .contact-photo-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(10, 22, 40, 0.15);
+    }
+    .contact-photo-header {
+        position: relative;
+        height: 280px;
+        overflow: hidden;
+    }
+    .contact-photo-main {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 20%;
+    }
+    .contact-photo-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        background: linear-gradient(to top, rgba(10, 22, 40, 0.95), transparent);
+    }
+    .contact-photo-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        display: flex;
+        align-items: flex-end;
+        gap: 16px;
+    }
+    .contact-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 4px solid #D4AF37;
+        object-fit: cover;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        background: white;
+    }
+    .contact-text-white {
+        color: white;
+        flex: 1;
+    }
+    .contact-name-large {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .contact-role-large {
+        font-size: 0.95rem;
+        color: #D4AF37;
+        margin: 4px 0 0 0;
+        font-weight: 500;
+    }
+    .contact-body-modern {
+        padding: 24px;
+    }
+    .contact-item-modern {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .contact-item-modern:last-of-type {
+        border-bottom: none;
+    }
+    .contact-icon-modern {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .icon-bg-email { background: #fef3c7; color: #D4AF37; }
+    .icon-bg-phone { background: #dbeafe; color: #1E3A8A; }
+    .icon-bg-specialty { background: #fce7f3; color: #be185d; }
+    .contact-content {
+        flex: 1;
+    }
+    .contact-label-small {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 2px;
+    }
+    .contact-value-normal {
+        font-size: 0.95rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+    .social-bar {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+    .social-btn-modern {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-scholar { background: #eff6ff; color: #4285F4; }
+    .btn-scholar:hover { background: #4285F4; color: white; }
+    .btn-rg { background: #f0fdfa; color: #00CCBB; }
+    .btn-rg:hover { background: #00CCBB; color: white; }
+    .btn-orcid { background: #f7fee7; color: #A6CE39; }
+    .btn-orcid:hover { background: #A6CE39; color: white; }
+    
+    /* Photo placeholder when no image */
+    .photo-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        background: linear-gradient(135deg, #0A1628 0%, #1E3A8A 100%);
+    }
+    .photo-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    .photo-placeholder-text {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+</style>
+</head>
+<body class="antialiased">
+
+    <div id="canvas-container"></div>
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="showSection('home')" title="Retour à l'accueil">
+        <i class="fas fa-home"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-premium shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-24">
+                <!-- Logo with School Name -->
+                <div class="flex items-center space-x-4 cursor-pointer" onclick="showSection('home')">
+                    <div class="logo-container">
+<div class="text-center">
+    <div class="font-serif font-bold text-2xl text-enstp-navy">ENSTP</div>
+    <div class="text-xs text-enstp-gold font-bold">FJ</div>
+</div>                    </div>
+                    <div class="hidden lg:block trilingual-name">
+                        <div class="fr text-white font-serif text-lg font-bold drop-shadow-lg">École Nationale Supérieure</div>
+                        <div class="ar text-enstp-gold font-arabic text-base font-bold drop-shadow-lg">المدرسة الوطنية العليا للأشغال العمومية</div>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden xl:flex items-center space-x-6">
+                    <a href="#" onclick="showSection('home')" class="nav-item text-sm font-semibold text-enstp-navy hover:text-enstp-gold transition-colors">Accueil</a>
+                    <a href="#" onclick="showSection('courses')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Cours 📑</a>
+                    <a href="#" onclick="showSection('td')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">TD</a>
+                    <a href="#" onclick="showSection('tp')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">TP 💻</a>
+                    <div class="dropdown relative">
+                        <a href="#" onclick="showSection('exams')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors flex items-center">
+                            Examens 📝 <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </a>
+                        <div class="dropdown-menu" id="examsDropdown">
+                            <div class="p-3 bg-enstp-navy text-white font-bold text-sm rounded-t-12">Sélectionner une université</div>
+                            <div class="exam-list" id="examsDropdownList"></div>
+                        </div>
+                    </div>
+                    <a href="#" onclick="showSection('homework')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Devoirs</a>
+                    <a href="#" onclick="showSection('grades')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Notes 📊</a>
+                    <a href="#" onclick="showSection('attendance')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Présence</a>
+                    <a href="#" onclick="showSection('program')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Programme 📃</a>
+                    <a href="#" onclick="showSection('library')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Livre 📚</a>
+                    <a href="#" onclick="showSection('videos')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Vidéos 📹</a>
+                    <a href="#" onclick="showSection('ai-lab')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors flex items-center">
+                        <i class="fas fa-robot mr-2 text-enstp-gold"></i>AI
+                    </a>
+                    <a href="#" onclick="showSection('contact')" class="nav-item text-sm font-semibold text-gray-600 hover:text-enstp-gold transition-colors">Contact 📞</a>
+                </div>
+
+                <!-- Right Side -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2 bg-gray-100 rounded-full p-1">
+                        <button onclick="switchLanguage('fr')" class="lang-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all bg-white shadow-sm text-enstp-navy" data-lang="fr">FR</button>
+                        <button onclick="switchLanguage('en')" class="lang-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all text-gray-500" data-lang="en">EN</button>
+                        <button onclick="switchLanguage('ar')" class="lang-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all text-gray-500" data-lang="ar">AR</button>
+                    </div>
+                    <button class="w-10 h-10 rounded-full bg-enstp-navy text-white flex items-center justify-center hover:bg-enstp-gold transition-colors">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="xl:hidden p-2 text-enstp-navy" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 z-40 bg-white transform translate-x-full transition-transform duration-300 xl:hidden pt-24 overflow-y-auto">
+        <div class="p-6 space-y-3">
+            <a href="#" onclick="showSection('home'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Accueil</a>
+            <a href="#" onclick="showSection('courses'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Cours 📑</a>
+            <a href="#" onclick="showSection('td'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">TD</a>
+            <a href="#" onclick="showSection('tp'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">TP 💻</a>
+            <a href="#" onclick="showSection('exams'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Examens 📝</a>
+            <a href="#" onclick="showSection('homework'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Devoirs</a>
+            <a href="#" onclick="showSection('grades'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Notes 📊</a>
+            <a href="#" onclick="showSection('attendance'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Présence</a>
+            <a href="#" onclick="showSection('program'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Programme 📃</a>
+            <a href="#" onclick="showSection('library'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Livre 📚</a>
+            <a href="#" onclick="showSection('videos'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Vidéos 📹</a>
+            <a href="#" onclick="showSection('ai-lab'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100 text-enstp-gold">AI Lab</a>
+            <a href="#" onclick="showSection('contact'); toggleMobileMenu()" class="block py-3 text-lg font-semibold border-b border-gray-100">Contact 📞</a>
+        </div>
+    </div>
+
+    <main class="pt-24">
+        
+        <!-- HOME SECTION -->
+        <section id="home-section" class="school-header min-h-screen flex items-center">
+            <div class="absolute inset-0 bg-black/40"></div>
+            
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                <div class="text-center max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <div class="inline-block p-6 bg-white/10 backdrop-blur-sm rounded-3xl border border-white/20 mb-6">
+                            <div class="w-32 h-32 mx-auto bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-enstp-gold mb-4">
+                                <img src="logo1.png" style="width: 80px; height: 80px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trilingual-name mb-8 text-white">
+                        <div class="fr font-serif text-3xl md:text-5xl font-bold mb-2 drop-shadow-2xl">École Nationale Supérieure<br>des Travaux Publics</div>
+                        <div class="ar font-arabic text-2xl md:text-4xl font-bold text-enstp-gold my-4 drop-shadow-2xl">المدرسة الوطنية العليا<br>للأشغال العمومية</div>
+                        <div class="en text-xl md:text-2xl font-light tracking-wider drop-shadow-2xl">Higher National School of Public Works<br>Francis Janson</div>
+                    </div>
+                    
+                    <div class="inline-flex items-center px-6 py-3 rounded-full bg-white/10 border border-enstp-gold/50 text-enstp-gold text-sm font-medium mb-8 backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-enstp-gold mr-3 animate-pulse"></span>
+                        2ème Année DIB & DMS • Méthode des Éléments Finis • 2025/2026
+                    </div>
+
+                    <p class="text-xl text-gray-200 mb-10 max-w-2xl mx-auto leading-relaxed">
+                        Plateforme éducative nationale regroupant les ressources de plus de 20 universités algériennes 
+                        avec système de gestion des présences et notes intelligent
+                    </p>
+
+                    <div class="flex flex-wrap justify-center gap-4 mb-12">
+                        <button onclick="showSection('td')" class="btn-gold px-8 py-4 rounded-full font-semibold text-lg shadow-2xl flex items-center">
+                            <i class="fas fa-book-open mr-3"></i>Commencer
+                        </button>
+                        <button onclick="showSection('attendance')" class="px-8 py-4 rounded-full font-semibold text-lg border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm transition-all">
+                            <i class="fas fa-clipboard-check mr-3"></i>Gestion Présence
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+                        <div class="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
+                            <div class="text-4xl font-bold text-enstp-gold mb-2">20+</div>
+                            <div class="text-sm text-gray-300">Universités</div>
+                        </div>
+                        <div class="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
+                            <div class="text-4xl font-bold text-white mb-2">500+</div>
+                            <div class="text-sm text-gray-300">Ressources</div>
+                        </div>
+                        <div class="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
+                            <div class="text-4xl font-bold text-enstp-gold mb-2">AI</div>
+                            <div class="text-sm text-gray-300">Assistant 24/7</div>
+                        </div>
+                        <div class="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
+                            <div class="text-4xl font-bold text-white mb-2">100%</div>
+                            <div class="text-sm text-gray-300">Gratuit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- QUICK ACCESS -->
+        <section class="py-8 bg-white border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-4 md:grid-cols-10 gap-3">
+                    <button onclick="showSection('courses')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-book text-xl mb-1 text-enstp-blue group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Cours 📑</p>
+                    </button>
+                    <button onclick="showSection('td')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-tasks text-xl mb-1 text-enstp-gold group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">TD</p>
+                    </button>
+                    <button onclick="showSection('tp')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-laptop-code text-xl mb-1 text-purple-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">TP 💻</p>
+                    </button>
+                    <button onclick="showSection('exams')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-file-alt text-xl mb-1 text-purple-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Examens 📝</p>
+                    </button>
+                    <button onclick="showSection('homework')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-pencil-alt text-xl mb-1 text-orange-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Devoirs</p>
+                    </button>
+                    <button onclick="showSection('grades')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-chart-line text-xl mb-1 text-green-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Notes 📊</p>
+                    </button>
+                    <button onclick="showSection('attendance')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-clipboard-check text-xl mb-1 text-pink-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Présence</p>
+                    </button>
+                    <button onclick="showSection('videos')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-video text-xl mb-1 text-red-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Vidéos 📹</p>
+                    </button>
+                    <button onclick="showSection('library')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-book-open text-xl mb-1 text-indigo-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Livre 📚</p>
+                    </button>
+                    <button onclick="showSection('program')" class="p-3 rounded-xl bg-enstp-cream hover:bg-enstp-navy hover:text-white transition-all group text-center">
+                        <i class="fas fa-calendar-alt text-xl mb-1 text-teal-600 group-hover:text-white"></i>
+                        <p class="text-xs font-semibold">Programme 📃</p>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ATTENDANCE SECTION - EDITABLE -->
+        <section id="attendance-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-8">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Liste de Présence</h2>
+                    <p class="text-gray-600">Gérez les présences manuellement. Les points sont calculés automatiquement par semestre.</p>
+                </div>
+
+                <!-- Session Info -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
+                    <div class="grid md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                            <input type="date" id="attDate" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Semestre</label>
+                            <select id="attSemester" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateAttendanceTable()">
+                                <option value="s3">Semestre 03</option>
+                                <option value="s4">Semestre 04</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Spécialité</label>
+                            <select id="attSpecialty" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateAttendanceTable()">
+                                <option value="DIB">DIB</option>
+                                <option value="DMS">DMS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Groupe</label>
+                            <select id="attGroup" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateAttendanceTable()">
+                                <option value="G01">Groupe 01</option>
+                                <option value="G02">Groupe 02</option>
+                                <option value="G03">Groupe 03</option>
+                                <option value="G04">Groupe 04</option>
+                                <option value="G05">Groupe 05</option>
+                                <option value="G06">Groupe 06</option>
+                                <option value="G07">Groupe 07</option>
+                                <option value="G08">Groupe 08</option>
+                                <option value="G09">Groupe 09</option>
+                                <option value="G10">Groupe 10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">TD</label>
+                            <select id="attTD" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateAttendanceSessions()">
+                                <option value="TD01">TD N°01</option>
+                                <option value="TD02">TD N°02</option>
+                                <option value="TD03">TD N°03</option>
+                                <option value="TD04">TD N°04</option>
+                                <option value="TD05">TD N°05</option>
+                                <option value="TD06">TD N°06</option>
+                                <option value="TD07">TD N°07</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Table -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-6">
+                    <div class="p-4 bg-enstp-navy text-white flex justify-between items-center">
+                        <h3 class="font-bold text-lg" id="attTableTitle">DIB - Groupe 01 - Semestre 03</h3>
+                        <div class="flex space-x-3">
+                            <button onclick="exportAttendancePDF()" class="px-4 py-2 bg-white text-enstp-navy rounded-lg font-semibold text-sm hover:bg-gray-100">
+                                <i class="fas fa-file-pdf mr-2"></i>PDF
+                            </button>
+                            <button onclick="addStudentRow()" class="px-4 py-2 bg-enstp-gold text-enstp-navy rounded-lg font-semibold text-sm hover:bg-opacity-90">
+                                <i class="fas fa-plus mr-2"></i>Ajouter étudiant
+                            </button>
+                            <button onclick="saveAttendance()" class="px-4 py-2 bg-white text-enstp-navy rounded-lg font-semibold text-sm hover:bg-gray-100">
+                                <i class="fas fa-save mr-2"></i>Enregistrer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="editable-table w-full text-sm" id="attendanceTable">
+                            <thead>
+                                <tr class="bg-enstp-cream">
+                                    <th class="p-3 text-left">N°</th>
+                                    <th class="p-3 text-left">Matricule</th>
+                                    <th class="p-3 text-left">Nom</th>
+                                    <th class="p-3 text-left">Prénom</th>
+                                    <th class="p-3 text-center">Séance 1</th>
+                                    <th class="p-3 text-center">Séance 2</th>
+                                    <th class="p-3 text-center">Séance 3</th>
+                                    <th class="p-3 text-center">Séance 4</th>
+                                    <th class="p-3 text-center">Total Abs</th>
+                                    <th class="p-3 text-center">Points /20</th>
+                                    <th class="p-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                <!-- Rows added dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h4 class="font-bold mb-4">Légende</h4>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-4 h-4 rounded bg-green-100 border border-green-500"></span>
+                            <span class="text-sm">Présent (P)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-4 h-4 rounded bg-red-100 border border-red-500"></span>
+                            <span class="text-sm">Absent (A)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-4 h-4 rounded bg-blue-100 border border-blue-500"></span>
+                            <span class="text-sm">Justifié (J)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-4 h-4 rounded bg-gray-100 border border-gray-400"></span>
+                            <span class="text-sm">Non applicable (/)</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-enstp-cream rounded-xl">
+                        <h5 class="font-semibold mb-2">Barème de points CC Présence (sur 2):</h5>
+                        <p class="text-sm text-gray-700">0 absence = 2 pts | 1 absence = 1.5 pts | 2 absences = 1 pt | 3 absences = 0.5 pt | 4+ absences = 0 pt</p>
+                        <p class="text-xs text-gray-500 mt-2">Le calcul se fait par semestre (S3 ou S4)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GRADES SECTION - EDITABLE -->
+        <section id="grades-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-8">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Gestion des Notes 📊</h2>
+                    <p class="text-gray-600">Saisissez les notes manuellement. La moyenne est calculée automatiquement.</p>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Spécialité</label>
+                            <select id="gradeSpecialty" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateGradesTable()">
+                                <option value="DIB">DIB</option>
+                                <option value="DMS">DMS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Groupe</label>
+                            <select id="gradeGroup" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateGradesTable()">
+                                <option value="G01">Groupe 01</option>
+                                <option value="G02">Groupe 02</option>
+                                <option value="G03">Groupe 03</option>
+                                <option value="G04">Groupe 04</option>
+                                <option value="G05">Groupe 05</option>
+                                <option value="G06">Groupe 06</option>
+                                <option value="G07">Groupe 07</option>
+                                <option value="G08">Groupe 08</option>
+                                <option value="G09">Groupe 09</option>
+                                <option value="G10">Groupe 10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Semestre</label>
+                            <select id="gradeSemester" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" onchange="updateGradesTable()">
+                                <option value="s3">Semestre 03</option>
+                                <option value="s4">Semestre 04</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addGradeRow()" class="w-full px-4 py-2 bg-enstp-gold text-white rounded-xl font-semibold hover:bg-opacity-90">
+                                <i class="fas fa-plus mr-2"></i>Ajouter étudiant
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Info -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100" id="teacherInfoBox">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-enstp-navy mb-3">Informations Enseignants</h4>
+                            <div class="space-y-2">
+                                <p class="text-sm"><span class="font-semibold">Spécialité:</span> <span id="infoSpecialty">DIB</span></p>
+                                <p class="text-sm"><span class="font-semibold">Groupe:</span> <span id="infoGroup">G01</span></p>
+                                <p class="text-sm"><span class="font-semibold">Enseignant:</span> <span id="infoTeacher">Mehiaoui Yasmina Mahdia</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <div class="trilingual-name text-right">
+                                <div class="ar font-arabic text-xl text-enstp-gold font-bold">المدرسة الوطنية العليا للأشغال العمومية</div>
+                                <div class="fr font-serif text-lg text-enstp-navy font-bold mt-1">École Nationale Supérieure des Travaux Publics</div>
+                                <div class="en text-sm text-gray-600 mt-1">National Higher School of Public Works</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grading Info -->
+                <div class="bg-enstp-navy text-white rounded-2xl p-6 mb-6">
+                    <h3 class="font-bold text-lg mb-4">Barème de calcul - Contrôle Continu</h3>
+                    <div class="grid md:grid-cols-5 gap-4 text-sm">
+                        <div class="bg-white/10 rounded-lg p-4 text-center">
+                            <div class="text-enstp-gold font-bold text-xl">3 pts</div>
+                            <div>Cours</div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4 text-center">
+                            <div class="text-enstp-gold font-bold text-xl">10 pts</div>
+                            <div>Interrogation</div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4 text-center">
+                            <div class="text-enstp-gold font-bold text-xl">5 pts</div>
+                            <div>Participation</div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4 text-center">
+                            <div class="text-enstp-gold font-bold text-xl">2 pts</div>
+                            <div>Présence</div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4 text-center">
+                            <div class="text-enstp-gold font-bold text-xl">20 pts</div>
+                            <div>Examen</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grades Table -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-6">
+                    <div class="p-4 bg-enstp-cream border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-enstp-navy" id="gradesTableTitle">DIB - Groupe 01 - Semestre 03</h3>
+                        <div class="flex space-x-3">
+                            <button onclick="exportGradesPDF()" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-opacity-90">
+                                <i class="fas fa-file-pdf mr-2"></i>PDF
+                            </button>
+                            <button onclick="exportGradesExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-opacity-90">
+                                <i class="fas fa-file-excel mr-2"></i>Excel
+                            </button>
+                            <button onclick="importFromAttendance()" class="px-4 py-2 bg-enstp-blue text-white rounded-lg font-semibold text-sm hover:bg-opacity-90">
+                                <i class="fas fa-import mr-2"></i>Importer Présences
+                            </button>
+                            <button onclick="saveGrades()" class="px-4 py-2 bg-enstp-navy text-white rounded-lg font-semibold text-sm hover:bg-opacity-90">
+                                <i class="fas fa-save mr-2"></i>Enregistrer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="editable-table w-full text-sm" id="gradesTable">
+                            <thead>
+                                <tr class="bg-enstp-navy text-white">
+                                    <th class="p-3">N°</th>
+                                    <th class="p-3">Matricule</th>
+                                    <th class="p-3">Nom</th>
+                                    <th class="p-3">Prénom</th>
+                                    <th class="p-3">Présence /2</th>
+                                    <th class="p-3">Participation /5</th>
+                                    <th class="p-3">Interro /10</th>
+                                    <th class="p-3">Cours /3</th>
+                                    <th class="p-3">CC /20</th>
+                                    <th class="p-3">Examen /20</th>
+                                    <th class="p-3">Moyenne</th>
+                                    <th class="p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTableBody">
+                                <!-- Rows added dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
+                        <div class="text-3xl font-bold text-enstp-gold mb-2" id="statAverage">--</div>
+                        <div class="text-gray-600 text-sm">Moyenne générale</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
+                        <div class="text-3xl font-bold text-enstp-blue mb-2" id="statHighest">--</div>
+                        <div class="text-gray-600 text-sm">Meilleure note</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
+                        <div class="text-3xl font-bold text-enstp-navy mb-2" id="statLowest">--</div>
+                        <div class="text-gray-600 text-sm">Note minimale</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-100">
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="statSuccess">--</div>
+                        <div class="text-gray-600 text-sm">Taux de réussite</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXAMS SECTION - REDESIGNED -->
+        <section id="exams-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Examens et Contrôle Continu 📝</h2>
+                    <p class="text-gray-600">Base de données nationale des examens en PDF</p>
+                </div>
+
+                <!-- Universities List -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
+                    <div class="p-6 bg-enstp-navy text-white">
+                        <h3 class="font-bold text-xl">Sélectionner une université</h3>
+                        <p class="text-gray-300 text-sm mt-1">Cliquez sur une université pour accéder aux examens</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6" id="examsUniversitiesGrid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- ENSTP Featured -->
+                <div class="mb-12 relative overflow-hidden rounded-3xl bg-gradient-to-r from-enstp-navy via-enstp-blue to-enstp-navy p-8 text-white shadow-2xl">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-enstp-gold/20 rounded-full -ml-10 -mb-10"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between">
+                        <div class="flex items-center space-x-6 mb-6 md:mb-0">
+                            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl border-4 border-enstp-gold">
+                                <img src="logo.png" style="width: 40px; height: 40px;">
+                            </div>
+                            <div>
+                                <div class="trilingual-name text-white mb-2">
+                                    <div class="fr font-serif text-2xl font-bold">École Nationale Supérieure des Travaux Publics</div>
+                                    <div class="ar font-arabic text-lg text-enstp-gold my-1">المدرسة الوطنية العليا للأشغال العمومية</div>
+                                    <div class="en text-sm text-gray-300">Higher National School of Public Works</div>
+                                </div>
+                                <p class="text-enstp-gold font-semibold">Kouba, Alger • Francis Janson</p>
+                            </div>
+                        </div>
+                        <div class="text-center md:text-right">
+                            <div class="text-5xl font-bold text-enstp-gold mb-2">45+</div>
+                            <div class="text-gray-300 mb-4">Examens disponibles</div>
+                            <button onclick="showUniversityExams('ENSTP')" class="px-6 py-3 bg-enstp-gold text-enstp-navy rounded-xl font-bold hover:bg-opacity-90 transition-all">
+                                <i class="fas fa-file-alt mr-2"></i>Voir les examens
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COURSES SECTION -->
+        <section id="courses-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Cours 📑</h2>
+                    <p class="text-gray-600">Cours et TD des universités algériennes (Fichiers PDF)</p>
+                </div>
+
+                <!-- Filter -->
+                <div class="flex flex-wrap justify-center gap-3 mb-8">
+                    <button onclick="filterUniversities('all')" class="filter-btn active px-6 py-2 rounded-full border-2 border-enstp-navy text-sm font-semibold transition-all bg-enstp-navy text-white">Toutes</button>
+                    <button onclick="filterUniversities('algiers')" class="filter-btn px-6 py-2 rounded-full border-2 border-enstp-navy text-enstp-navy text-sm font-semibold transition-all">Alger</button>
+                    <button onclick="filterUniversities('constantine')" class="filter-btn px-6 py-2 rounded-full border-2 border-enstp-navy text-enstp-navy text-sm font-semibold transition-all">Constantine</button>
+                    <button onclick="filterUniversities('TISSEMSILT')" class="filter-btn px-6 py-2 rounded-full border-2 border-enstp-navy text-enstp-navy text-sm font-semibold transition-all">TISSEMSILT</button>
+                    <button onclick="filterUniversities('other')" class="filter-btn px-6 py-2 rounded-full border-2 border-enstp-navy text-enstp-navy text-sm font-semibold transition-all">Autres</button>
+                </div>
+
+                <!-- Universities Grid -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="coursesUniversitiesGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TD SECTION - REDESIGNED -->
+        <section id="td-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
+                    <div>
+                        <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-2">Travaux Dirigés</h2>
+                        <p class="text-gray-600">Séries complètes avec solutions détaillées (PDF + Web)</p>
+                    </div>
+                    
+                    <div class="mt-6 md:mt-0 bg-white rounded-full p-1 shadow-lg border border-gray-200">
+                        <button onclick="switchSemester('s3')" id="btn-s3" class="px-8 py-3 rounded-full font-semibold transition-all bg-enstp-navy text-white shadow-md">Semestre 03</button>
+                        <button onclick="switchSemester('s4')" id="btn-s4" class="px-8 py-3 rounded-full font-semibold transition-all text-gray-600 hover:text-enstp-navy">Semestre 04</button>
+                    </div>
+                </div>
+
+                <!-- Semestre 03 -->
+                <div id="semester3-content" class="space-y-6">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- TD 01 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">01</div>
+                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">Disponible</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Les éléments Ressorts</h3>
+                            <p class="text-gray-600 text-sm mb-4">Introduction aux éléments finis unidimensionnels</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N01_Ressorts.pdf', 'Série TD N°01 - Ressorts')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N01_Ressorts.pdf', 'Solution TD N°01 - Ressorts')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/index1.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- TD 02 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-green-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">02</div>
+                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">Disponible</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Les éléments Barres</h3>
+                            <p class="text-gray-600 text-sm mb-4">Éléments finis pour structures en traction/compression</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N02_Barres.pdf', 'Série TD N°02 - Barres')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N02_Barres.pdf', 'Solution TD N°02 - Barres')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/Solution_TD_N02_Barres.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- TD 03 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">03</div>
+                                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">En cours</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Les éléments Barres en Treillis</h3>
+                            <p class="text-gray-600 text-sm mb-4">Structures réticulées planes et spatiales</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N03_Treillis.pdf', 'Série TD N°03 - Treillis')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N03_Treillis.pdf', 'Solution TD N°03 - Treillis')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/Solution_TD_N03_Treillis.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- TD 04 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">04</div>
+                                <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold">Verrouillé</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Les éléments Poutres</h3>
+                            <p class="text-gray-600 text-sm mb-4">Flexion et moment fléchissant</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N04_Poutres.pdf', 'Série TD N°04 - Poutres')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button disabled class="w-full py-2 rounded-lg bg-gray-100 text-gray-400 text-sm font-semibold cursor-not-allowed flex items-center justify-center">
+                                    <i class="fas fa-lock mr-2"></i>Bientôt
+                                </button>
+                                <button disabled class="w-full py-2 rounded-lg bg-gray-100 text-gray-400 text-sm font-semibold cursor-not-allowed flex items-center justify-center">
+                                    <i class="fas fa-lock mr-2"></i>Bientôt
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semestre 04 -->
+                <div id="semester4-content" class="hidden space-y-6">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- TD 05 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">05</div>
+                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">Nouveau</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Structures 2D – États plans</h3>
+                            <p class="text-gray-600 text-sm mb-4">Contraintes planes et déformations planes</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N05_2D_Etats_Plans.pdf', 'Série TD N°05 - 2D États Plans')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N05_2D_Etats_Plans.pdf', 'Solution TD N°05 - 2D États Plans')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/Solution_TD_N05_2D_Etats_Plans.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- TD 06 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">06</div>
+                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">Nouveau</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Transformation géométrique et fonctions de forme</h3>
+                            <p class="text-gray-600 text-sm mb-4">Isoparamétrique et interpolation</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N06_Transformation.pdf', 'Série TD N°06 - Transformation')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N06_Transformation.pdf', 'Solution TD N°06 - Transformation')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/Solution_TD_N06_Transformation.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- TD 07 -->
+                        <div class="td-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg">07</div>
+                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">Nouveau</span>
+                            </div>
+                            <h3 class="font-bold text-xl text-enstp-navy mb-2">Formulation isoparamétrique</h3>
+                            <p class="text-gray-600 text-sm mb-4">Intégration numérique et éléments isoparamétriques</p>
+                            <div class="space-y-2">
+                                <button onclick="openPDF('td/Serie_TD_N07_Isoparametrique.pdf', 'Série TD N°07 - Isoparamétrique')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Sujet
+                                </button>
+                                <button onclick="openPDF('td/Solution_TD_N07_Isoparametrique.pdf', 'Solution TD N°07 - Isoparamétrique')" class="w-full py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy text-sm font-semibold hover:bg-enstp-navy hover:text-white flex items-center justify-center">
+                                    <i class="fas fa-lightbulb mr-2"></i>Solution PDF
+                                </button>
+                                <a href="td/Solution_TD_N07_Isoparametrique.html" target="_blank" class="w-full py-2 rounded-lg bg-enstp-gold text-enstp-navy text-sm font-semibold hover:bg-opacity-90 flex items-center justify-center">
+                                    <i class="fas fa-globe mr-2"></i>Solution Web
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TP SECTION - NEW -->
+        <!-- TP SECTION - COMPLETE -->
+<section id="tp-section" class="hidden py-16 bg-enstp-gray">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Travaux Pratiques 💻</h2>
+            <p class="text-gray-600">Fichiers PDF, codes sources et vidéos explicatives pour la MEF</p>
+        </div>
+
+        <!-- TP List - All 7 TPs -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" id="tpList">
+            
+            <!-- TP 01 : Ressorts -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="01">
+                <div class="h-40 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative">
+                    <i class="fas fa-compress-arrows-alt text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-blue-600 shadow-lg">01</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Les éléments Ressorts</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Introduction aux éléments finis unidimensionnels</p>
+                    
+                    <!-- Mode Tabs -->
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('01', 'web')" class="tp-tab-01-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('01', 'youtube')" class="tp-tab-01-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('01', 'pdf')" class="tp-tab-01-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <!-- Content Areas -->
+                    <div id="tp-content-01-web" class="tp-content-01">
+                        <a href="tp/TP01_Ressorts_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-01-youtube" class="tp-content-01 hidden">
+                        <a href="https://youtube.com/watch?v=TP01_Ressorts" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-01-pdf" class="tp-content-01 hidden">
+                        <button onclick="openPDF('tp/TP01_Ressorts.pdf', 'TP N°01 - Ressorts')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 02 : Barres -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="02">
+                <div class="h-40 bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center relative">
+                    <i class="fas fa-minus text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-green-600 shadow-lg">02</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Les éléments Barres</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Éléments finis pour structures en traction/compression</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('02', 'web')" class="tp-tab-02-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('02', 'youtube')" class="tp-tab-02-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('02', 'pdf')" class="tp-tab-02-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-02-web" class="tp-content-02">
+                        <a href="tp/TP02_Barres_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-02-youtube" class="tp-content-02 hidden">
+                        <a href="https://youtube.com/watch?v=TP02_Barres" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-02-pdf" class="tp-content-02 hidden">
+                        <button onclick="openPDF('tp/TP02_Barres.pdf', 'TP N°02 - Barres')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 03 : Treillis -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="03">
+                <div class="h-40 bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center relative">
+                    <i class="fas fa-project-diagram text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-purple-600 shadow-lg">03</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Les éléments Barres en Treillis</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Structures réticulées planes et spatiales</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('03', 'web')" class="tp-tab-03-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('03', 'youtube')" class="tp-tab-03-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('03', 'pdf')" class="tp-tab-03-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-03-web" class="tp-content-03">
+                        <a href="tp/TP03_Treillis_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-03-youtube" class="tp-content-03 hidden">
+                        <a href="https://youtube.com/watch?v=TP03_Treillis" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-03-pdf" class="tp-content-03 hidden">
+                        <button onclick="openPDF('tp/TP03_Treillis.pdf', 'TP N°03 - Treillis')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 04 : Poutres -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="04">
+                <div class="h-40 bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center relative">
+                    <i class="fas fa-grip-lines text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-orange-600 shadow-lg">04</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Les éléments Poutres</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Flexion et moment fléchissant</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('04', 'web')" class="tp-tab-04-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('04', 'youtube')" class="tp-tab-04-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('04', 'pdf')" class="tp-tab-04-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-04-web" class="tp-content-04">
+                        <a href="tp/TP04_Poutres_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-04-youtube" class="tp-content-04 hidden">
+                        <a href="https://youtube.com/watch?v=TP04_Poutres" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-04-pdf" class="tp-content-04 hidden">
+                        <button onclick="openPDF('tp/TP04_Poutres.pdf', 'TP N°04 - Poutres')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 05 : Structures 2D -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="05">
+                <div class="h-40 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center relative">
+                    <i class="fas fa-square text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-red-600 shadow-lg">05</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Structures 2D – États plans</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Contraintes planes et déformations planes</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('05', 'web')" class="tp-tab-05-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('05', 'youtube')" class="tp-tab-05-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('05', 'pdf')" class="tp-tab-05-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-05-web" class="tp-content-05">
+                        <a href="tp/TP05_Structures2D_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-05-youtube" class="tp-content-05 hidden">
+                        <a href="https://youtube.com/watch?v=TP05_Structures2D" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-05-pdf" class="tp-content-05 hidden">
+                        <button onclick="openPDF('tp/TP05_Structures2D.pdf', 'TP N°05 - Structures 2D')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 06 : Transformation -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="06">
+                <div class="h-40 bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center relative">
+                    <i class="fas fa-shapes text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-teal-600 shadow-lg">06</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Transformation géométrique et fonctions de forme</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Isoparamétrique et interpolation</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('06', 'web')" class="tp-tab-06-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('06', 'youtube')" class="tp-tab-06-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('06', 'pdf')" class="tp-tab-06-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-06-web" class="tp-content-06">
+                        <a href="tp/TP06_Transformation_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-06-youtube" class="tp-content-06 hidden">
+                        <a href="https://youtube.com/watch?v=TP06_Transformation" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-06-pdf" class="tp-content-06 hidden">
+                        <button onclick="openPDF('tp/TP06_Transformation.pdf', 'TP N°06 - Transformation')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP 07 : Isoparamétrique -->
+            <div class="tp-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all" data-tp="07">
+                <div class="h-40 bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center relative">
+                    <i class="fas fa-cube text-6xl text-white/30"></i>
+                    <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center font-bold text-xl text-indigo-600 shadow-lg">07</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-enstp-navy mb-2">Formulation isoparamétrique</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-10">Intégration numérique et éléments isoparamétriques</p>
+                    
+                    <div class="flex rounded-lg bg-gray-100 p-1 mb-4">
+                        <button onclick="showTPMode('07', 'web')" class="tp-tab-07-web flex-1 py-2 rounded-md text-sm font-semibold transition-all bg-white text-enstp-navy shadow-sm">Web</button>
+                        <button onclick="showTPMode('07', 'youtube')" class="tp-tab-07-youtube flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">YouTube</button>
+                        <button onclick="showTPMode('07', 'pdf')" class="tp-tab-07-pdf flex-1 py-2 rounded-md text-sm font-semibold transition-all text-gray-500 hover:text-enstp-navy">PDF</button>
+                    </div>
+                    
+                    <div id="tp-content-07-web" class="tp-content-07">
+                        <a href="tp/TP07_Isoparametrique_Web/index.html" target="_blank" class="block w-full py-3 rounded-lg bg-enstp-navy text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-globe mr-2"></i>Ouvrir en Web
+                        </a>
+                    </div>
+                    <div id="tp-content-07-youtube" class="tp-content-07 hidden">
+                        <a href="https://youtube.com/watch?v=TP07_Isoparametrique" target="_blank" class="block w-full py-3 rounded-lg bg-red-600 text-white text-center font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fab fa-youtube mr-2"></i>Voir sur YouTube
+                        </a>
+                    </div>
+                    <div id="tp-content-07-pdf" class="tp-content-07 hidden">
+                        <button onclick="openPDF('tp/TP07_Isoparametrique.pdf', 'TP N°07 - Isoparamétrique')" class="w-full py-3 rounded-lg bg-red-500 text-white font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Code Resources Section (Keep existing) -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="p-6 bg-enstp-navy text-white">
+                <h3 class="font-bold text-xl">Ressources Code</h3>
+                <p class="text-gray-300 text-sm mt-1">Codes sources et bibliothèques pour tous les TP</p>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 overflow-x-auto">
+                <div class="code-tab active" onclick="switchCodeTab('matlab')">
+                    <i class="fas fa-calculator mr-2"></i>MATLAB
+                </div>
+                <div class="code-tab" onclick="switchCodeTab('python')">
+                    <i class="fab fa-python mr-2"></i>Python
+                </div>
+                <div class="code-tab" onclick="switchCodeTab('java')">
+                    <i class="fab fa-java mr-2"></i>Java
+                </div>
+                <div class="code-tab" onclick="switchCodeTab('cpp')">
+                    <i class="fas fa-code mr-2"></i>C++
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- MATLAB -->
+                <div id="code-matlab" class="code-content">
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <h4 class="font-bold text-enstp-navy mb-2">stiffness_matrix.m</h4>
+                            <p class="text-sm text-gray-600 mb-3">Calcul de la matrice de rigidité élémentaire</p>
+                            <button onclick="downloadCode('matlab/stiffness_matrix.m')" class="px-4 py-2 bg-enstp-navy text-white rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                                <i class="fas fa-download mr-2"></i>Télécharger
+                            </button>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <h4 class="font-bold text-enstp-navy mb-2">assemble.m</h4>
+                            <p class="text-sm text-gray-600 mb-3">Assemblage des matrices globales</p>
+                            <button onclick="downloadCode('matlab/assemble.m')" class="px-4 py-2 bg-enstp-navy text-white rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                                <i class="fas fa-download mr-2"></i>Télécharger
+                            </button>
+                        </div>
+                    </div>
+                    <div class="code-block">
+<pre>function Ke = stiffness_matrix(E, A, L)
+% Matrice de rigidité élémentaire pour un élément barre
+Ke = (E*A/L) * [1 -1; -1 1];
+end</pre>
+                    </div>
+                </div>
+
+                <!-- Python -->
+                <div id="code-python" class="code-content hidden">
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <h4 class="font-bold text-enstp-navy mb-2">fem_core.py</h4>
+                            <p class="text-sm text-gray-600 mb-3">Cœur de calcul MEF avec NumPy</p>
+                            <button onclick="downloadCode('python/fem_core.py')" class="px-4 py-2 bg-enstp-navy text-white rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                                <i class="fas fa-download mr-2"></i>Télécharger
+                            </button>
+                        </div>
+                    </div>
+                    <div class="code-block">
+<pre>import numpy as np
+
+def stiffness_matrix(E, A, L):
+    return (E * A / L) * np.array([[1, -1], [-1, 1]])</pre>
+                    </div>
+                </div>
+
+                <!-- Java -->
+                <div id="code-java" class="code-content hidden">
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-4">
+                        <h4 class="font-bold text-enstp-navy mb-2">FEMSolver.java</h4>
+                        <p class="text-sm text-gray-600 mb-3">Solveur MEF orienté objet</p>
+                        <button onclick="downloadCode('java/FEMSolver.java')" class="px-4 py-2 bg-enstp-navy text-white rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                            <i class="fas fa-download mr-2"></i>Télécharger
+                        </button>
+                    </div>
+                    <div class="code-block">
+<pre>public class Element {
+    public double[][] getStiffnessMatrix() {
+        double k = E * A / L;
+        return new double[][]{{k, -k}, {-k, k}};
+    }
+}</pre>
+                    </div>
+                </div>
+
+                <!-- C++ -->
+                <div id="code-cpp" class="code-content hidden">
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-4">
+                        <h4 class="font-bold text-enstp-navy mb-2">fem_solver.cpp</h4>
+                        <p class="text-sm text-gray-600 mb-3">Solveur haute performance</p>
+                        <button onclick="downloadCode('cpp/fem_solver.cpp')" class="px-4 py-2 bg-enstp-navy text-white rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                            <i class="fas fa-download mr-2"></i>Télécharger
+                        </button>
+                    </div>
+                    <div class="code-block">
+<pre>MatrixXd stiffnessMatrix(double E, double A, double L) {
+    double k = E * A / L;
+    MatrixXd Ke(2, 2);
+    Ke << k, -k, -k, k;
+    return Ke;
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+        <!-- HOMEWORK SECTION - REDESIGNED -->
+        <section id="homework-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Devoirs Maison</h2>
+                    <p class="text-gray-600">Dossier ENSTP - Devoirs à rendre</p>
+                </div>
+
+                <!-- ENSTP Folder -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 max-w-3xl mx-auto">
+                    <div class="p-6 bg-gradient-to-r from-enstp-navy to-enstp-blue text-white flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                                <img src="logo.png" style="width: 40px; height: 40px;">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xl">Devoirs Maison ENSTP</h3>
+                                <p class="text-enstp-gold">Francis Janson - Kouba</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-folder-open text-4xl text-white/30"></i>
+                    </div>
+                    
+                    <div class="p-6 space-y-4" id="dmList">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-enstp-cream transition-colors cursor-pointer group" onclick="openPDF('dm/DM_N01.pdf', 'DM N°01')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-enstp-navy group-hover:text-enstp-gold transition-colors">DM N°01</h4>
+                                    <p class="text-sm text-gray-500">Les elements barres et ressorts</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">À rendre: 15/02/2025</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-enstp-cream transition-colors cursor-pointer group" onclick="openPDF('dm/DM_N02.pdf', 'DM N°02')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-enstp-navy group-hover:text-enstp-gold transition-colors">DM N°02</h4>
+                                    <p class="text-sm text-gray-500">Treillis spatial 3D</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">À rendre: 01/03/2025</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-enstp-cream transition-colors cursor-pointer group" onclick="openPDF('dm/DM_N03.pdf', 'DM N°03')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                                    <i class="fas fa-file-pdf text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-enstp-navy group-hover:text-enstp-gold transition-colors">DM N°03</h4>
+                                    <p class="text-sm text-gray-500">Poutre continue sur appuis multiples</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold">À venir</span>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROGRAM SECTION - REDESIGNED -->
+        <section id="program-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Programme Pédagogique 📃</h2>
+                    <p class="text-gray-600">Programme officiel de la matière MEF</p>
+                </div>
+
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                        <div class="p-8 bg-gradient-to-r from-enstp-navy to-enstp-blue text-white text-center">
+                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-file-pdf text-3xl text-red-600"></i>
+                            </div>
+                            <h3 class="font-bold text-2xl mb-2">Programme MEF 2025-2026</h3>
+                            <p class="text-gray-300">Version officielle - Téléchargeable</p>
+                        </div>
+                        
+                        <div class="p-8">
+                            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                                <div class="p-4 bg-enstp-cream rounded-xl">
+                                    <h4 class="font-bold text-enstp-navy mb-2">Semestre 03</h4>
+                                    <ul class="text-sm text-gray-700 space-y-1">
+                                        <li>• Introduction à la MEF</li>
+                                        <li>• Éléments 1D (Ressorts, Barres, Poutres)</li>
+                                        <li>• Treillis et structures réticulées</li>
+                                    </ul>
+                                </div>
+                                <div class="p-4 bg-enstp-cream rounded-xl">
+                                    <h4 class="font-bold text-enstp-navy mb-2">Semestre 04</h4>
+                                    <ul class="text-sm text-gray-700 space-y-1">
+                                        <li>• Structures 2D - États plans</li>
+                                        <li>• Transformation géométrique</li>
+                                        <li>• Formulation isoparamétrique</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <button onclick="openPDF('program/Programme_MEF_2025_2026.pdf', 'Programme MEF 2025-2026')" class="w-full py-4 rounded-xl bg-enstp-navy text-white font-bold text-lg hover:bg-opacity-90 transition-all flex items-center justify-center">
+                                <i class="fas fa-download mr-3"></i>Télécharger le Programme (PDF)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIBRARY SECTION -->
+        <section id="library-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Livre 📚 & Ressources</h2>
+                    <p class="text-gray-600">Bibliothèque numérique des universités algériennes</p>
+                </div>
+
+                <!-- University Filter -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                    <h3 class="font-bold text-lg mb-4">Sélectionner une université</h3>
+                    <div class="flex flex-wrap gap-3" id="libraryUniversityFilter">
+                        <button onclick="filterBooks('all')" class="px-4 py-2 rounded-full bg-enstp-navy text-white text-sm font-semibold">Toutes</button>
+                        <button onclick="filterBooks('ENSTP')" class="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-enstp-cream">ENSTP</button>
+                        <button onclick="filterBooks('USTHB')" class="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-enstp-cream">USTHB</button>
+                        <button onclick="filterBooks('Polytechnique')" class="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-enstp-cream">Polytechnique</button>
+                    </div>
+                </div>
+
+                <!-- Books Grid -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6" id="booksGrid">
+                    <!-- Books populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEOS SECTION - REDESIGNED -->
+        <section id="videos-section" class="hidden py-16 bg-enstp-gray">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Vidéos YouTube 📹</h2>
+                    <p class="text-gray-600">Cours et tutoriels sur la méthode des éléments finis</p>
+                </div>
+
+                <!-- Categories Grid -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" id="videoCategories">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <!-- Videos List -->
+                <div id="videosList" class="hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <button onclick="showVideoCategories()" class="px-4 py-2 rounded-lg border-2 border-enstp-navy text-enstp-navy font-semibold hover:bg-enstp-navy hover:text-white transition-all">
+                            <i class="fas fa-arrow-left mr-2"></i>Retour aux catégories
+                        </button>
+                        <h3 class="font-bold text-xl text-enstp-navy" id="currentVideoCategory">Catégorie</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="videosGrid">
+                        <!-- Videos populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI LAB SECTION -->
+        <section id="ai-lab-section" class="hidden py-16 bg-enstp-navy text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <div class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 border border-enstp-gold/30 text-enstp-gold text-sm mb-6">
+                        <i class="fas fa-sparkles mr-2"></i> Powered by AI
+                    </div>
+                    <h2 class="font-serif text-5xl font-bold mb-6">AI Laboratory</h2>
+                    <p class="text-xl text-gray-300">Assistant IA pour la méthode des éléments finis</p>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-12">
+                    <div class="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden">
+                        <div class="p-6 border-b border-white/10 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-enstp-gold flex items-center justify-center">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">FEM Assistant</h4>
+                                    <p class="text-xs text-green-400">En ligne</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-96 overflow-y-auto p-6 space-y-4" id="aiChatBox">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-enstp-gold flex-shrink-0 flex items-center justify-center text-xs">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <div class="bg-white/10 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
+                                    <p class="text-sm">Bonjour ! Je suis votre assistant MEF. Comment puis-je vous aider ?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-white/10">
+                            <div class="flex space-x-3">
+                                <input type="text" id="aiInput" placeholder="Posez votre question..." class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-enstp-gold" onkeypress="handleAIInput(event)">
+                                <button onclick="sendAIMessage()" class="w-12 h-12 rounded-xl bg-enstp-gold text-white flex items-center justify-center hover:bg-opacity-90">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-enstp-gold/20 flex items-center justify-center text-enstp-gold text-xl">
+                                    <i class="fas fa-cube"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Simulation 3D</h4>
+                                    <p class="text-gray-400 text-sm">Visualisation temps réel</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION - REDESIGNED WITH PHOTOS -->
+<!-- CONTACT SECTION -->
+<section id="contact-section" class="hidden py-16 bg-enstp-gray">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="font-serif text-4xl font-bold text-enstp-navy mb-4">Contact 📞</h2>
+            <p class="text-gray-600">Responsables de la matière MEF</p>
+        </div>
+
+        <!-- School Header -->
+        <div class="max-w-3xl mx-auto mb-12">
+            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                <div class="trilingual-name text-center mb-6">
+                    <div class="ar font-arabic text-2xl text-enstp-gold font-bold mb-2">المدرسة الوطنية العليا للأشغال العمومية</div>
+                    <div class="fr font-serif text-xl text-enstp-navy font-bold">École Nationale Supérieure des Travaux Publics</div>
+                    <div class="en text-gray-600 mt-1">National Higher School of Public Works</div>
+                </div>
+                <div class="text-center text-gray-500">
+                    <i class="fas fa-map-marker-alt text-enstp-gold mr-2"></i>
+                    1, Rue Sidi Garidi, Kouba, Alger
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Cards with Photos -->
+        <div class="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            
+            <!-- Dr. Assas Taqiyeddine -->
+            <div class="contact-photo-card">
+                <div class="contact-photo-header">
+                    <!-- الصورة الرئيسية - غيّر المسار هنا -->
+                    <img 
+                        src="images/dr-assas.jpg" 
+                        alt="Dr. Assas Taqiyeddine" 
+                        class="contact-photo-main"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'photo-placeholder\'><i class=\'fas fa-user-tie\'></i><span class=\'photo-placeholder-text\'>Dr. Assas Taqiyeddine</span></div>';"
+                    >
+                    <div class="contact-photo-gradient"></div>
+                    <div class="contact-photo-info">
+                        <!-- الصورة الدائرية - نفس المسار -->
+                        <img 
+                            src="images/dr-assas.jpg" 
+                            alt="TA" 
+                            class="contact-avatar-large"
+                            onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23D4AF37%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2230%22 fill=%22white%22 font-weight=%22bold%22%3ETA%3C/text%3E%3C/svg%3E';"
+                        >
+                        <div class="contact-text-white">
+                            <h3 class="contact-name-large">Dr. Assas Taqiyeddine</h3>
+                            <p class="contact-role-large">Responsable des TD</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-body-modern">
+                    <!-- Email -->
+                    <div class="contact-item-modern">
+                        <div class="contact-icon-modern icon-bg-email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-content">
+                            <div class="contact-label-small">Email</div>
+                            <div class="contact-value-normal">taqiyeddine.assas@univ-biskra.dz</div>
+                        </div>
+                        <a href="mailto:taqiyeddine.assas@univ-biskra.dz" class="text-enstp-gold hover:text-enstp-navy">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="contact-item-modern">
+                        <div class="contact-icon-modern icon-bg-phone">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-content">
+                            <div class="contact-label-small">Téléphone</div>
+                            <div class="contact-value-normal">0670876131</div>
+                        </div>
+                        <a href="tel:0670876131" class="text-enstp-gold hover:text-enstp-navy">
+                            <i class="fas fa-phone-alt"></i>
+                        </a>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="social-bar">
+                        <a href="https://scholar.google.com/scholar?hl=fr&q=assas+taqiyeddine" target="_blank" class="social-btn-modern btn-scholar">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Scholar</span>
+                        </a>
+                        <a href="https://www.researchgate.net/profile/Taqiyeddine-Assas" target="_blank" class="social-btn-modern btn-rg">
+                            <i class="fab fa-researchgate"></i>
+                            <span>RG</span>
+                        </a>
+                        <a href="https://orcid.org/0009-0001-4288-2908" target="_blank" class="social-btn-modern btn-orcid">
+                            <i class="fas fa-id-badge"></i>
+                            <span>ORCID</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mme Mehiaoui Hadjebar -->
+            <div class="contact-photo-card">
+                <div class="contact-photo-header" style="background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);">
+                    <!-- الصورة الرئيسية - غيّر المسار هنا -->
+                    <img 
+                        src="images/mme-mehiaoui.jpg" 
+                        alt="Mme Mehiaoui Hadjebar" 
+                        class="contact-photo-main"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'photo-placeholder\' style=\'background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);\'><i class=\'fas fa-user-graduate\'></i><span class=\'photo-placeholder-text\'>Mme Mehiaoui Hadjebar</span></div>';"
+                    >
+                    <div class="contact-photo-gradient"></div>
+                    <div class="contact-photo-info">
+                        <!-- الصورة الدائرية - نفس المسار -->
+                        <img 
+                            src="images/mme-mehiaoui.jpg" 
+                            alt="MM" 
+                            class="contact-avatar-large"
+                            onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%230A1628%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2230%22 fill=%22white%22 font-weight=%22bold%22%3EMM%3C/text%3E%3C/svg%3E';"
+                        >
+                        <div class="contact-text-white">
+                            <h3 class="contact-name-large">Mme Mehiaoui Hadjebar</h3>
+                            <p class="contact-role-large">Responsable du Cours</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-body-modern">
+                    <!-- Specialty -->
+                    <div class="contact-item-modern">
+                        <div class="contact-icon-modern icon-bg-specialty">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="contact-content">
+                            <div class="contact-label-small">Spécialité</div>
+                            <div class="contact-value-normal">DIB - Génie Civil</div>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="contact-item-modern">
+                        <div class="contact-icon-modern icon-bg-email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-content">
+                            <div class="contact-label-small">Email</div>
+                            <div class="contact-value-normal">m.mahiaoui@enstp.edu.dz</div>
+                        </div>
+                        <a href="mailto:m.mahiaoui@enstp.edu.dz" class="text-enstp-gold hover:text-enstp-navy">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="social-bar">
+                        <a href="https://scholar.google.com/scholar?hl=fr&q=Mahdia+Yasmina+Mehiaoui" target="_blank" class="social-btn-modern btn-scholar">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Google Scholar</span>
+                        </a>
+                        <a href="https://www.researchgate.net/profile/Mahdia-Mehiaoui" target="_blank" class="social-btn-modern btn-rg">
+                            <i class="fab fa-researchgate"></i>
+                            <span>ResearchGate</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="mt-12 max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                <h3 class="font-bold text-xl mb-6 text-center">Envoyer un message</h3>
+                <form class="space-y-4" onsubmit="event.preventDefault(); alert('Message envoyé !');">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input type="text" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" placeholder="Nom" required>
+                        <input type="text" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" placeholder="Prénom" required>
+                    </div>
+                    <input type="email" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" placeholder="Email" required>
+                    <select class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none">
+                        <option>Destinataire</option>
+                        <option>Dr. Assas Taqiyeddine (Responsable TD)</option>
+                        <option>Mme Mehiaoui Hadjebar (Responsable Cours)</option>
+                    </select>
+                    <textarea rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-enstp-gold focus:outline-none" placeholder="Votre message..." required></textarea>
+                    <button type="submit" class="w-full py-4 rounded-xl bg-enstp-navy text-white font-bold hover:bg-opacity-90 transition-all">
+                        <i class="fas fa-paper-plane mr-2"></i>Envoyer le message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+        <!-- FOOTER -->
+        <footer class="bg-enstp-navy text-white py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-4 gap-12 mb-12">
+                    <div class="col-span-2">
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center border-4 border-enstp-gold">
+                                <img src="logo.png" style="width: 40px; height: 40px;">
+                            </div>
+                            <div class="trilingual-name text-white">
+                                <div class="fr font-serif text-lg font-bold">École Nationale Supérieure des Travaux Publics</div>
+                                <div class="ar font-arabic text-base text-enstp-gold my-1">المدرسة الوطنية العليا للأشغال العمومية</div>
+                                <div class="en text-sm text-gray-400">Higher National School of Public Works</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 mb-6 max-w-md">
+                            Plateforme éducative nationale pour la Méthode des Éléments Finis.
+                            Francis Janson - Kouba, Alger.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6 text-enstp-gold">Navigation</h4>
+                        <ul class="space-y-3 text-gray-400">
+                            <li><a href="#" onclick="showSection('home')" class="hover:text-white transition-colors">Accueil</a></li>
+                            <li><a href="#" onclick="showSection('courses')" class="hover:text-white transition-colors">Cours</a></li>
+                            <li><a href="#" onclick="showSection('td')" class="hover:text-white transition-colors">TD</a></li>
+                            <li><a href="#" onclick="showSection('tp')" class="hover:text-white transition-colors">TP</a></li>
+                            <li><a href="#" onclick="showSection('exams')" class="hover:text-white transition-colors">Examens</a></li>
+                            <li><a href="#" onclick="showSection('ai-lab')" class="hover:text-white transition-colors">AI Lab</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6 text-enstp-gold">Contact</h4>
+                        <ul class="space-y-3 text-gray-400">
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-map-marker-alt mt-1 text-enstp-gold"></i>
+                                <span>1, Rue Sidi Garidi<br>Kouba, Algiers</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <i class="fas fa-envelope text-enstp-gold"></i>
+                                <span>contact@enstp.edu.dz</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-white/10 pt-8 text-center text-gray-400 text-sm">
+                    <p>&copy; 2025 ENSTP Algeria - Francis Janson. Tous droits réservés.</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- PDF VIEWER MODAL -->
+    <div id="pdfModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePDFModal()"></div>
+        <div class="absolute inset-4 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-enstp-navy text-white p-4 flex justify-between items-center">
+                <h3 id="pdfModalTitle" class="font-bold text-lg">Visualisation du PDF</h3>
+                <button onclick="closePDFModal()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-hidden" id="pdfViewerContainer">
+                <iframe id="pdfViewer" class="w-full h-full border-0"></iframe>
+            </div>
+            <div class="bg-gray-50 p-4 flex justify-between items-center">
+                <span id="pdfFileName" class="text-sm text-gray-600"></span>
+                <a id="pdfDownloadLink" href="#" download class="px-6 py-2 bg-enstp-gold text-enstp-navy rounded-xl font-semibold hover:bg-opacity-90 transition-all">
+                    <i class="fas fa-download mr-2"></i>Télécharger
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNIVERSITY PDF MODAL -->
+    <div id="universityPDFModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeUniversityPDFModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                <div id="universityPDFHeader" class="bg-gradient-to-r from-enstp-navy to-enstp-blue p-6 text-white">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 id="uniPDFTitle" class="text-2xl font-bold mb-2">Université</h2>
+                            <p id="uniPDFSubtitle" class="text-enstp-gold">Cours et TD disponibles</p>
+                        </div>
+                        <button onclick="closeUniversityPDFModal()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-lg text-enstp-navy mb-4 flex items-center">
+                                <i class="fas fa-book mr-2 text-enstp-gold"></i>Cours Magistraux (Cours)
+                            </h3>
+                            <div id="uniCoursesList" class="pdf-list space-y-2">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-enstp-navy mb-4 flex items-center">
+                                <i class="fas fa-tasks mr-2 text-enstp-blue"></i>Travaux Dirigés (TD)
+                            </h3>
+                            <div id="uniTDList" class="pdf-list space-y-2">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-enstp-cream rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-info-circle mr-2 text-enstp-gold"></i>
+                            Cliquez sur un fichier pour le visualiser ou le télécharger. Les fichiers PDF doivent être placés dans le dossier <code>pdf/[universite]/</code>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data des universités avec structure de fichiers PDF
+        const universitiesData = [
+            { 
+                name: "ENSTP", 
+                fullName: "École Nationale Supérieure des Travaux Publics", 
+                city: "Alger", 
+                exams: 45, 
+                courses: 20, 
+                color: "from-enstp-navy to-enstp-blue", 
+                region: "algiers",
+                pdfPath: "pdf/enstp/",
+                examFiles: [
+                    { name: "Examen S3 2024", file: "examen_s3_2024.pdf" },
+                    { name: "Examen S3 2023", file: "examen_s3_2023.pdf" },
+                    { name: "Examen S4 2024", file: "examen_s4_2024.pdf" },
+                    { name: "Examen S4 2023", file: "examen_s4_2023.pdf" }
+                ],
+                courseFiles: [
+                    { name: "Cours MEF DIB", file: "DIB.pdf" },
+                    { name: "Cours MEF DMS", file: "DMS.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD DMS ", file: "td01.pdf" },
+                    { name: "Série TD DIB", file: "td02.pdf" }
+                ]
+            },
+            { 
+                name: "UAT", 
+                fullName: "Université d'Ain Témouchent", 
+                city: "Ain Témouchent", 
+                exams: 32, 
+                courses: 15, 
+                color: "from-blue-600 to-blue-800", 
+                region: "algiers",
+                pdfPath: "pdf/ain_temouchent/",
+                examFiles: [
+                    { name: "Examen MEF 2024", file: "examen_mef_2024.pdf" },
+                    { name: "Examen MEF 2023", file: "examen_mef_2023.pdf" }
+                ],
+                courseFiles: [
+                    { name: "COURS ET APPLICATIONS DE LA METHODE DES ELEMENTS FINIS", file: "cours_applications.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD", file: "td01.pdf" }
+                ]
+            },
+            { 
+                name: "UR", 
+                fullName: "Université de Relizane", 
+                city: "Relizane", 
+                exams: 18, 
+                courses: 8, 
+                color: "from-green-600 to-green-800", 
+                region: "algiers",
+                pdfPath: "pdf/relizane/",
+                examFiles: [
+                    { name: "Examen Principal 2024", file: "examen_principal_2024.pdf" }
+                ],
+                courseFiles: [
+                    { name: "Méthode des éléments finis - Cours et exercices", file: "cours_exercices.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD", file: "td_structures.pdf" }
+                ]
+            },
+            { 
+                name: "UBMBB", 
+                fullName: "UNIVERSITE BATNA 2 MOSTEFA BEN BOULAID", 
+                city: "Batna", 
+                exams: 28, 
+                courses: 20, 
+                color: "from-purple-600 to-purple-800", 
+                region: "algiers",
+                pdfPath: "pdf/batna/",
+                examFiles: [
+                    { name: "Examen S3 2024", file: "examen_s3_2024.pdf" }
+                ],
+                courseFiles: [
+                    { name: "METHODE DES ELEMENTS FINIS ANALYSE DES STRUCTURES PAR ELEMENTS FINIS (ANALYSE STATIQUE)", file: "cours_complet.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD ", file: "td01.pdf" },
+                   
+                ]
+            },
+            { 
+                name: "UC", 
+                fullName: "Université Constantine 1 - Frères Mentouri", 
+                city: "Constantine", 
+                exams: 35, 
+                courses: 18, 
+                color: "from-orange-600 to-orange-800", 
+                region: "constantine",
+                pdfPath: "pdf/uc/",
+                examFiles: [
+                    { name: "Examen MEF 2024", file: "examen_mef_2024.pdf" }
+                ],
+                courseFiles: [
+                    { name: "Cours MEF Constantine", file: "cours_mef.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD", file: "td01.pdf" }
+                ]
+            },
+            { 
+                name: "CUABEL-WT", 
+                fullName: "CENTRE UNIVERSITAIRE AHMED BEN YAHIA EL-WANCHARISSI DE TISSEMSILT", 
+                city: "TISSEMSILT", 
+                exams: 25, 
+                courses: 14, 
+                color: "from-indigo-600 to-indigo-800", 
+                region: "oran",
+                pdfPath: "pdf/TISSEMSILT/",
+                examFiles: [
+                    { name: "Examen MEF 2024", file: "examen_mef_2024.pdf" }
+                ],
+                courseFiles: [
+                    { name: "Cours : Méthode des Éléments Finis ", file: "cours_mef.pdf" }
+                ],
+                tdFiles: [
+                    { name: "Série TD", file: "td01.pdf" }
+                ]
+            }
+        ];
+
+        // Video Categories Data
+        const videoCategories = [
+            { id: 'ressorts', name: 'Éléments ressorts', icon: 'fa-compress-arrows-alt', color: 'from-blue-500 to-blue-700', count: 5 },
+            { id: 'barres', name: 'Éléments barres', icon: 'fa-minus', color: 'from-green-500 to-green-700', count: 8 },
+            { id: 'treillis', name: 'Éléments barres en treillis', icon: 'fa-project-diagram', color: 'from-purple-500 to-purple-700', count: 6 },
+            { id: 'poutres', name: 'Éléments poutres', icon: 'fa-grip-lines', color: 'from-orange-500 to-orange-700', count: 7 },
+            { id: '2d', name: 'Structures 2D – États plans', icon: 'fa-square', color: 'from-red-500 to-red-700', count: 4 },
+            { id: 'transformation', name: 'Transformation géométrique et fonctions de forme', icon: 'fa-shapes', color: 'from-teal-500 to-teal-700', count: 5 },
+            { id: 'isoparametrique', name: 'Formulation isoparamétrique', icon: 'fa-cube', color: 'from-indigo-500 to-indigo-700', count: 6 }
+        ];
+
+        const booksData = [
+            { title: "Modélisation des structures en matériaux composites par la méthode des éléments finis", author: "Assas Taqiyeddine", uni: "U.Biskra", type: "Référence principale", color: "from-enstp-navy to-enstp-blue", file: "books/dhatt_touzot_tome1.pdf" },
+            { title: "A First Course in the Finite Element Method", author: "Dr. Daryl L. Logan", uni: "University of Wisconsin-Platteville", type: "SIXTH édition", color: "from-blue-600 to-blue-800", file: "books/bathe_fem.pdf" },
+            { title: "introduction à la méthode des éléments finis cours et exercices", author: "jean christophe cuillière", uni: "ENP", type: "3th Edition", color: "from-purple-600 to-purple-800", file: "books/zienkiewicz_fem.pdf" },
+            { title: " MATLAB Codes for Finite Element Analysis", author: "António J.M. Ferreira", uni: "Universidade do Porto, Porto, Portugal", type: "Avec codes sources", color: "from-green-600 to-green-800", file: "books/liu_matlab.pdf" }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+            populateExamsDropdown();
+            populateExamsUniversities();
+            populateCoursesUniversities();
+            populateVideoCategories();
+            populateBooks();
+            initAttendanceTable();
+            initGradesTable();
+        });
+
+        // Three.js
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const material = new THREE.MeshBasicMaterial({ color: 0xD4AF37, wireframe: true, transparent: true, opacity: 0.1 });
+            
+            for (let i = 0; i < 5; i++) {
+                const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), material);
+                mesh.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 10);
+                scene.add(mesh);
+            }
+
+            camera.position.z = 5;
+            function animate() {
+                requestAnimationFrame(animate);
+                scene.children.forEach(child => {
+                    child.rotation.x += 0.001;
+                    child.rotation.y += 0.001;
+                });
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            document.querySelectorAll('main > section').forEach(section => {
+                if (section.id !== 'home-section') section.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(sectionName + '-section');
+            if (target) {
+                target.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            if (sectionName === 'attendance') initAttendanceTable();
+            if (sectionName === 'grades') initGradesTable();
+            
+            document.getElementById('mobileMenu').classList.add('translate-x-full');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('translate-x-full');
+        }
+
+        function switchLanguage(lang) {
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('bg-white', btn.dataset.lang === lang);
+                btn.classList.toggle('shadow-sm', btn.dataset.lang === lang);
+                btn.classList.toggle('text-enstp-navy', btn.dataset.lang === lang);
+                btn.classList.toggle('text-gray-500', btn.dataset.lang !== lang);
+            });
+        }
+
+        function switchSemester(sem) {
+            const btnS3 = document.getElementById('btn-s3');
+            const btnS4 = document.getElementById('btn-s4');
+            const contentS3 = document.getElementById('semester3-content');
+            const contentS4 = document.getElementById('semester4-content');
+
+            if (sem === 's3') {
+                btnS3.classList.add('bg-enstp-navy', 'text-white');
+                btnS3.classList.remove('text-gray-600');
+                btnS4.classList.remove('bg-enstp-navy', 'text-white');
+                btnS4.classList.add('text-gray-600');
+                contentS3.classList.remove('hidden');
+                contentS4.classList.add('hidden');
+            } else {
+                btnS4.classList.add('bg-enstp-navy', 'text-white');
+                btnS4.classList.remove('text-gray-600');
+                btnS3.classList.remove('bg-enstp-navy', 'text-white');
+                btnS3.classList.add('text-gray-600');
+                contentS4.classList.remove('hidden');
+                contentS3.classList.add('hidden');
+            }
+        }
+
+        // PDF Functions
+        function openPDF(filePath, title) {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            const downloadLink = document.getElementById('pdfDownloadLink');
+            const modalTitle = document.getElementById('pdfModalTitle');
+            const fileName = document.getElementById('pdfFileName');
+            
+            viewer.src = filePath;
+            downloadLink.href = filePath;
+            downloadLink.download = filePath.split('/').pop();
+            modalTitle.textContent = title;
+            fileName.textContent = filePath;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closePDFModal() {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            viewer.src = '';
+            modal.classList.add('hidden');
+        }
+
+        function showUniversityPDFs(uniName) {
+            const uni = universitiesData.find(u => u.name === uniName);
+            if (!uni) return;
+
+            const modal = document.getElementById('universityPDFModal');
+            const title = document.getElementById('uniPDFTitle');
+            const subtitle = document.getElementById('uniPDFSubtitle');
+            const coursesList = document.getElementById('uniCoursesList');
+            const tdList = document.getElementById('uniTDList');
+
+            title.textContent = uni.fullName;
+            subtitle.textContent = `${uni.city} • ${uni.courses} Cours • ${uni.tdFiles.length} TD`;
+
+            // Populate courses
+            coursesList.innerHTML = uni.courseFiles.map(course => `
+                <div class="pdf-item p-4 bg-gray-50 rounded-xl flex items-center justify-between cursor-pointer" onclick="openPDF('${uni.pdfPath}${course.file}', '${course.name}')">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                        <span class="font-semibold text-gray-700">${course.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="text-enstp-blue hover:text-enstp-navy" title="Visualiser">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="${uni.pdfPath}${course.file}" download class="text-enstp-gold hover:text-enstp-navy" title="Télécharger" onclick="event.stopPropagation();">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            // Populate TDs
+            tdList.innerHTML = uni.tdFiles.map(td => `
+                <div class="pdf-item p-4 bg-gray-50 rounded-xl flex items-center justify-between cursor-pointer" onclick="openPDF('${uni.pdfPath}${td.file}', '${td.name}')">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-file-alt text-enstp-blue text-xl"></i>
+                        <span class="font-semibold text-gray-700">${td.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="text-enstp-blue hover:text-enstp-navy" title="Visualiser">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="${uni.pdfPath}${td.file}" download class="text-enstp-gold hover:text-enstp-navy" title="Télécharger" onclick="event.stopPropagation();">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeUniversityPDFModal() {
+            document.getElementById('universityPDFModal').classList.add('hidden');
+        }
+
+        // Exams Dropdown
+        function populateExamsDropdown() {
+            const list = document.getElementById('examsDropdownList');
+            universitiesData.forEach(uni => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">${uni.name}</span>
+                        <span class="text-xs text-gray-500">${uni.exams} examens</span>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">${uni.city}</div>
+                `;
+                item.onclick = () => {
+                    showSection('exams');
+                    setTimeout(() => showUniversityPDFs(uni.name), 100);
+                };
+                list.appendChild(item);
+            });
+        }
+
+        // Attendance - Editable Table
+        let attendanceData = [];
+        const tdSessions = {
+            'TD01': 4,
+            'TD02': 4,
+            'TD03': 4,
+            'TD04': 4,
+            'TD05': 2,
+            'TD06': 2,
+            'TD07': 2
+        };
+        
+        function initAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            attendanceData = [];
+            
+            // Add default empty rows
+            for (let i = 1; i <= 5; i++) {
+                addStudentRow();
+            }
+            updateAttendanceSessions();
+        }
+
+        function addStudentRow() {
+            const tbody = document.getElementById('attendanceTableBody');
+            const rowNum = tbody.children.length + 1;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="p-3 font-semibold">${rowNum}</td>
+                <td class="p-3"><input type="text" placeholder="Matricule" class="w-full text-xs"></td>
+                <td class="p-3"><input type="text" placeholder="Nom" class="w-full"></td>
+                <td class="p-3"><input type="text" placeholder="Prénom" class="w-full"></td>
+                <td class="p-3 text-center session-1">
+                    <select onchange="updateAttendancePoints(this)" class="presence-select">
+                        <option value="P" class="presence-present">P</option>
+                        <option value="A" class="presence-absent">A</option>
+                        <option value="J" class="presence-justified">J</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center session-2">
+                    <select onchange="updateAttendancePoints(this)" class="presence-select">
+                        <option value="P" class="presence-present">P</option>
+                        <option value="A" class="presence-absent">A</option>
+                        <option value="J" class="presence-justified">J</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center session-3">
+                    <select onchange="updateAttendancePoints(this)" class="presence-select">
+                        <option value="P" class="presence-present">P</option>
+                        <option value="A" class="presence-absent">A</option>
+                        <option value="J" class="presence-justified">J</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center session-4">
+                    <select onchange="updateAttendancePoints(this)" class="presence-select">
+                        <option value="P" class="presence-present">P</option>
+                        <option value="A" class="presence-absent">A</option>
+                        <option value="J" class="presence-justified">J</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center font-bold text-red-600 absences-count">0</td>
+                <td class="p-3 text-center font-bold text-enstp-gold points-display">2.0</td>
+                <td class="p-3 text-center">
+                    <button onclick="deleteRow(this)" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+            updateAttendanceSessions();
+        }
+
+        function updateAttendanceSessions() {
+            const tdSelect = document.getElementById('attTD');
+            const selectedTD = tdSelect.value;
+            const numSessions = tdSessions[selectedTD] || 4;
+            
+            const headers = document.querySelectorAll('#attendanceTable th');
+            const rows = document.querySelectorAll('#attendanceTableBody tr');
+            
+            // Update headers and cells visibility
+            for (let i = 1; i <= 4; i++) {
+                const sessionIndex = 4 + i; // Index of session columns
+                const show = i <= numSessions;
+                
+                if (headers[sessionIndex]) {
+                    headers[sessionIndex].style.display = show ? '' : 'none';
+                }
+                
+                rows.forEach(row => {
+                    const cell = row.querySelector(`.session-${i}`);
+                    if (cell) {
+                        if (!show) {
+                            cell.innerHTML = '<span class="text-gray-400">/</span>';
+                        } else if (cell.querySelector('select') === null) {
+                            cell.innerHTML = `
+                                <select onchange="updateAttendancePoints(this)" class="presence-select">
+                                    <option value="P" class="presence-present">P</option>
+                                    <option value="A" class="presence-absent">A</option>
+                                    <option value="J" class="presence-justified">J</option>
+                                </select>
+                            `;
+                        }
+                    }
+                });
+            }
+            
+            updateAllAttendancePoints();
+        }
+
+        function updateAttendancePoints(select) {
+            updateAllAttendancePoints();
+        }
+
+        function updateAllAttendancePoints() {
+            const rows = document.querySelectorAll('#attendanceTableBody tr');
+            const semester = document.getElementById('attSemester')?.value || 's3';
+            
+            rows.forEach(row => {
+                const selects = row.querySelectorAll('.presence-select');
+                let absences = 0;
+                
+                selects.forEach(select => {
+                    if (select.value === 'A') absences++;
+                });
+                
+                // Calculate points: 0abs=2, 1abs=1.5, 2abs=1, 3abs=0.5, 4+=0
+                let points = 2;
+                if (absences === 1) points = 1.5;
+                else if (absences === 2) points = 1;
+                else if (absences === 3) points = 0.5;
+                else if (absences >= 4) points = 0;
+                
+                row.querySelector('.absences-count').textContent = absences;
+                row.querySelector('.points-display').textContent = points.toFixed(1);
+            });
+        }
+
+        function deleteRow(btn) {
+            btn.closest('tr').remove();
+            const rows = document.querySelectorAll('#attendanceTableBody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+        }
+
+        function saveAttendance() {
+            alert('Présences enregistrées avec succès !');
+        }
+
+        function exportAttendancePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header with trilingual names
+            doc.setFontSize(12);
+            doc.text('المدرسة الوطنية العليا للأشغال العمومية', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('École Nationale Supérieure des Travaux Publics', 105, 30, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text('National Higher School of Public Works', 105, 38, { align: 'center' });
+            
+            // Title
+            doc.setFontSize(16);
+            doc.text('Liste de Présence - MEF', 105, 50, { align: 'center' });
+            
+            // Info
+            const specialty = document.getElementById('attSpecialty')?.value || 'DIB';
+            const group = document.getElementById('attGroup')?.value || 'G01';
+            const td = document.getElementById('attTD')?.value || 'TD01';
+            const date = document.getElementById('attDate')?.value || new Date().toLocaleDateString();
+            const semester = document.getElementById('attSemester')?.value || 's3';
+            
+            doc.setFontSize(11);
+            doc.text(`Spécialité: ${specialty} | Groupe: ${group} | ${td} | Semestre: ${semester.toUpperCase()}`, 20, 65);
+            doc.text(`Date: ${date}`, 20, 72);
+            
+            // Table
+            const rows = document.querySelectorAll('#attendanceTableBody tr');
+            let y = 85;
+            
+            doc.setFontSize(9);
+            doc.text('N°', 20, y);
+            doc.text('Matricule', 35, y);
+            doc.text('Nom', 70, y);
+            doc.text('Prénom', 100, y);
+            doc.text('S1', 135, y);
+            doc.text('S2', 150, y);
+            doc.text('S3', 165, y);
+            doc.text('S4', 180, y);
+            doc.text('Abs', 195, y);
+            
+            y += 8;
+            
+            rows.forEach((row, idx) => {
+                const inputs = row.querySelectorAll('input');
+                const selects = row.querySelectorAll('select');
+                
+                doc.text(`${idx + 1}`, 20, y);
+                doc.text(inputs[0]?.value || '', 35, y);
+                doc.text(inputs[1]?.value || '', 70, y);
+                doc.text(inputs[2]?.value || '', 100, y);
+                
+                selects.forEach((sel, sIdx) => {
+                    const x = 135 + (sIdx * 15);
+                    if (sel.parentElement.querySelector('span')?.textContent === '/') {
+                        doc.text('/', x, y);
+                    } else {
+                        doc.text(sel.value, x, y);
+                    }
+                });
+                
+                const abs = row.querySelector('.absences-count')?.textContent || '0';
+                doc.text(abs, 195, y);
+                
+                y += 7;
+            });
+            
+            doc.save(`Presence_${specialty}_${group}_${semester}.pdf`);
+        }
+
+        // Grades - Editable Table
+        function initGradesTable() {
+            const tbody = document.getElementById('gradesTableBody');
+            tbody.innerHTML = '';
+            
+            // Add default empty rows
+            for (let i = 1; i <= 5; i++) {
+                addGradeRow();
+            }
+            updateTeacherInfo();
+        }
+
+        function addGradeRow() {
+            const tbody = document.getElementById('gradesTableBody');
+            const rowNum = tbody.children.length + 1;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="p-3 font-semibold">${rowNum}</td>
+                <td class="p-3"><input type="text" placeholder="Matricule" class="w-full text-xs"></td>
+                <td class="p-3"><input type="text" placeholder="Nom" class="w-full"></td>
+                <td class="p-3"><input type="text" placeholder="Prénom" class="w-full"></td>
+                <td class="p-3"><input type="number" min="0" max="2" step="0.5" value="2" class="w-full presence-grade" onchange="calculateCC(this)"></td>
+                <td class="p-3"><input type="number" min="0" max="5" step="0.25" value="0" class="w-full" onchange="calculateCC(this)"></td>
+                <td class="p-3"><input type="number" min="0" max="10" step="0.25" value="0" class="w-full" onchange="calculateCC(this)"></td>
+                <td class="p-3"><input type="number" min="0" max="3" step="0.25" value="0" class="w-full" onchange="calculateCC(this)"></td>
+                <td class="p-3 font-bold text-enstp-blue cc-total">0.00</td>
+                <td class="p-3"><input type="number" min="0" max="20" step="0.25" value="0" class="w-full exam-grade" onchange="calculateFinal(this)"></td>
+                <td class="p-3 font-bold text-enstp-navy final-grade">0.00</td>
+                <td class="p-3 text-center">
+                    <button onclick="deleteGradeRow(this)" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        }
+
+        function calculateCC(input) {
+            const row = input.closest('tr');
+            const presence = parseFloat(row.querySelector('.presence-grade').value) || 0;
+            const participation = parseFloat(row.cells[5].querySelector('input').value) || 0;
+            const interro = parseFloat(row.cells[6].querySelector('input').value) || 0;
+            const cours = parseFloat(row.cells[7].querySelector('input').value) || 0;
+            
+            const ccTotal = presence + participation + interro + cours;
+            row.querySelector('.cc-total').textContent = ccTotal.toFixed(2);
+            
+            calculateFinal(input);
+        }
+
+        function calculateFinal(input) {
+            const row = input.closest('tr');
+            const ccTotal = parseFloat(row.querySelector('.cc-total').textContent) || 0;
+            const exam = parseFloat(row.querySelector('.exam-grade').value) || 0;
+            
+            const final = (ccTotal + exam) / 2;
+            const finalCell = row.querySelector('.final-grade');
+            finalCell.textContent = final.toFixed(2);
+            
+            finalCell.className = 'p-3 font-bold final-grade ' + (final >= 10 ? 'text-green-600' : 'text-red-600');
+            
+            updateGradeStats();
+        }
+
+        function deleteGradeRow(btn) {
+            btn.closest('tr').remove();
+            const rows = document.querySelectorAll('#gradesTableBody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+            updateGradeStats();
+        }
+
+        function updateGradeStats() {
+            const finals = document.querySelectorAll('.final-grade');
+            if (finals.length === 0) return;
+            
+            let sum = 0, highest = 0, lowest = 20, passed = 0;
+            finals.forEach(cell => {
+                const val = parseFloat(cell.textContent) || 0;
+                sum += val;
+                if (val > highest) highest = val;
+                if (val < lowest) lowest = val;
+                if (val >= 10) passed++;
+            });
+            
+            document.getElementById('statAverage').textContent = (sum / finals.length).toFixed(2);
+            document.getElementById('statHighest').textContent = highest.toFixed(2);
+            document.getElementById('statLowest').textContent = lowest.toFixed(2);
+            document.getElementById('statSuccess').textContent = Math.round((passed / finals.length) * 100) + '%';
+        }
+
+        function updateTeacherInfo() {
+            const specialty = document.getElementById('gradeSpecialty')?.value || 'DIB';
+            const group = document.getElementById('gradeGroup')?.value || 'G01';
+            const semester = document.getElementById('gradeSemester')?.value || 's3';
+            
+            document.getElementById('infoSpecialty').textContent = specialty;
+            document.getElementById('infoGroup').textContent = group;
+            document.getElementById('infoTeacher').textContent = specialty === 'DIB' ? 'Mehiaoui Yasmina Mahdia' : 'Tounsi Khaled';
+            document.getElementById('gradesTableTitle').textContent = `${specialty} - ${group} - ${semester.toUpperCase()}`;
+        }
+
+        function importFromAttendance() {
+            const attRows = document.querySelectorAll('#attendanceTableBody tr');
+            const gradeRows = document.querySelectorAll('#gradesTableBody tr');
+            
+            attRows.forEach((attRow, index) => {
+                if (gradeRows[index]) {
+                    const points = attRow.querySelector('.points-display').textContent;
+                    const input = gradeRows[index].querySelector('.presence-grade');
+                    input.value = points;
+                    calculateCC(input);
+                }
+            });
+            
+            alert('Points de présence importés !');
+        }
+
+        function saveGrades() {
+            alert('Notes enregistrées avec succès !');
+        }
+
+        function exportGradesPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header with trilingual names
+            doc.setFontSize(12);
+            doc.text('المدرسة الوطنية العليا للأشغال العمومية', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('École Nationale Supérieure des Travaux Publics', 105, 30, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text('National Higher School of Public Works', 105, 38, { align: 'center' });
+            
+            // Title
+            doc.setFontSize(16);
+            doc.text('Relevé de Notes - MEF', 105, 50, { align: 'center' });
+            
+            // Info
+            const specialty = document.getElementById('gradeSpecialty')?.value || 'DIB';
+            const group = document.getElementById('gradeGroup')?.value || 'G01';
+            const semester = document.getElementById('gradeSemester')?.value || 's3';
+            const teacher = specialty === 'DIB' ? 'Mehiaoui Yasmina Mahdia' : 'Tounsi Khaled';
+            
+            doc.setFontSize(11);
+            doc.text(`Spécialité: ${specialty} | Groupe: ${group} | Semestre: ${semester.toUpperCase()}`, 20, 65);
+            doc.text(`Enseignant: ${teacher}`, 20, 72);
+            
+            // Table
+            const rows = document.querySelectorAll('#gradesTableBody tr');
+            let y = 85;
+            
+            doc.setFontSize(8);
+            doc.text('N°', 15, y);
+            doc.text('Mat.', 25, y);
+            doc.text('Nom', 50, y);
+            doc.text('Prénom', 80, y);
+            doc.text('Prés.', 110, y);
+            doc.text('Part.', 125, y);
+            doc.text('Int.', 140, y);
+            doc.text('Cours', 155, y);
+            doc.text('CC', 170, y);
+            doc.text('Exam.', 185, y);
+            doc.text('Moy.', 200, y);
+            
+            y += 6;
+            
+            rows.forEach((row, idx) => {
+                const inputs = row.querySelectorAll('input');
+                
+                doc.text(`${idx + 1}`, 15, y);
+                doc.text(inputs[0]?.value?.substring(0, 8) || '', 25, y);
+                doc.text(inputs[1]?.value?.substring(0, 10) || '', 50, y);
+                doc.text(inputs[2]?.value?.substring(0, 10) || '', 80, y);
+                doc.text(inputs[3]?.value || '', 110, y);
+                doc.text(inputs[4]?.value || '', 125, y);
+                doc.text(inputs[5]?.value || '', 140, y);
+                doc.text(inputs[6]?.value || '', 155, y);
+                
+                const cc = row.querySelector('.cc-total')?.textContent || '';
+                const exam = inputs[7]?.value || '';
+                const moy = row.querySelector('.final-grade')?.textContent || '';
+                
+                doc.text(cc, 170, y);
+                doc.text(exam, 185, y);
+                doc.text(moy, 200, y);
+                
+                y += 5;
+            });
+            
+            doc.save(`Notes_${specialty}_${group}_${semester}.pdf`);
+        }
+
+        function exportGradesExcel() {
+            const specialty = document.getElementById('gradeSpecialty')?.value || 'DIB';
+            const group = document.getElementById('gradeGroup')?.value || 'G01';
+            const semester = document.getElementById('gradeSemester')?.value || 's3';
+            const teacher = specialty === 'DIB' ? 'Mehiaoui Yasmina Mahdia' : 'Tounsi Khaled';
+            
+            const data = [
+                ['المدرسة الوطنية العليا للأشغال العمومية'],
+                ['École Nationale Supérieure des Travaux Publics'],
+                ['National Higher School of Public Works'],
+                [],
+                ['Relevé de Notes - MEF'],
+                [`Spécialité: ${specialty}`, `Groupe: ${group}`, `Semestre: ${semester.toUpperCase()}`],
+                [`Enseignant: ${teacher}`],
+                [],
+                ['N°', 'Matricule', 'Nom', 'Prénom', 'Présence/2', 'Participation/5', 'Interro/10', 'Cours/3', 'CC/20', 'Examen/20', 'Moyenne']
+            ];
+            
+            const rows = document.querySelectorAll('#gradesTableBody tr');
+            rows.forEach((row, idx) => {
+                const inputs = row.querySelectorAll('input');
+                const cc = row.querySelector('.cc-total')?.textContent || '';
+                const moy = row.querySelector('.final-grade')?.textContent || '';
+                
+                data.push([
+                    idx + 1,
+                    inputs[0]?.value || '',
+                    inputs[1]?.value || '',
+                    inputs[2]?.value || '',
+                    inputs[3]?.value || '',
+                    inputs[4]?.value || '',
+                    inputs[5]?.value || '',
+                    inputs[6]?.value || '',
+                    cc,
+                    inputs[7]?.value || '',
+                    moy
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Notes");
+            XLSX.writeFile(wb, `Notes_${specialty}_${group}_${semester}.xlsx`);
+        }
+
+        // Populate Universities for Exams
+        function populateExamsUniversities() {
+            const grid = document.getElementById('examsUniversitiesGrid');
+            if (!grid) return;
+            
+            universitiesData.forEach(uni => {
+                const card = document.createElement('div');
+                card.className = 'university-card-new cursor-pointer';
+                card.setAttribute('data-region', uni.region);
+                card.onclick = () => showUniversityExams(uni.name);
+                card.innerHTML = `
+                    <div class="university-header bg-gradient-to-br ${uni.color}">
+                        <div class="university-logo bg-gradient-to-br ${uni.color}">
+                            ${uni.name.substring(0, 2)}
+                        </div>
+                    </div>
+                    <div class="p-6 pt-12 text-center">
+                        <h3 class="font-bold text-xl text-enstp-navy mb-2">${uni.name}</h3>
+                        <p class="text-gray-500 text-sm mb-4">${uni.city}</p>
+                        <div class="flex justify-center gap-4 mb-4">
+                            <span class="px-3 py-1 bg-enstp-cream rounded-full text-xs font-semibold text-enstp-navy">${uni.exams} Examens</span>
+                        </div>
+                        <button class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90">
+                            <i class="fas fa-file-alt mr-2"></i>Voir les examens
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showUniversityExams(uniName) {
+            const uni = universitiesData.find(u => u.name === uniName);
+            if (!uni || !uni.examFiles) return;
+            
+            // Create modal for exams
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="this.parentElement.remove()"></div>
+                <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl relative z-10">
+                    <div class="bg-gradient-to-r from-enstp-navy to-enstp-blue p-6 text-white">
+                        <h3 class="font-bold text-2xl">${uni.name}</h3>
+                        <p class="text-enstp-gold">Examens disponibles</p>
+                    </div>
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        ${uni.examFiles.map(exam => `
+                            <div class="exam-item" onclick="openPDF('${uni.pdfPath}${exam.file}', '${exam.name}'); this.closest('.fixed').remove();">
+                                <div>
+                                    <div class="exam-title font-semibold text-enstp-navy">${exam.name}</div>
+                                    <div class="text-xs text-gray-500">PDF • Cliquez pour ouvrir</div>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Populate Universities for Courses
+        function populateCoursesUniversities() {
+            const grid = document.getElementById('coursesUniversitiesGrid');
+            if (!grid) return;
+            
+            universitiesData.forEach(uni => {
+                const card = document.createElement('div');
+                card.className = 'university-card-new';
+                card.setAttribute('data-region', uni.region);
+                card.innerHTML = `
+                    <div class="university-header bg-gradient-to-br ${uni.color}">
+                        <div class="university-logo bg-gradient-to-br ${uni.color}">
+                            ${uni.name.substring(0, 2)}
+                        </div>
+                    </div>
+                    <div class="p-6 pt-12 text-center">
+                        <h3 class="font-bold text-lg text-enstp-navy mb-2">${uni.name}</h3>
+                        <p class="text-gray-500 text-sm mb-2">${uni.fullName}</p>
+                        <p class="text-enstp-gold font-semibold text-sm mb-4">${uni.city}</p>
+                        <div class="flex justify-center gap-3 mb-4">
+                            <span class="px-2 py-1 bg-gray-100 rounded text-xs">${uni.courses} Cours PDF</span>
+                            <span class="px-2 py-1 bg-gray-100 rounded text-xs">${uni.tdFiles.length} TD PDF</span>
+                        </div>
+                        <button onclick="showUniversityPDFs('${uni.name}')" class="w-full py-2 rounded-lg bg-enstp-navy text-white text-sm font-semibold hover:bg-opacity-90">
+                            <i class="fas fa-folder-open mr-2"></i>Accéder aux PDFs
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter functions
+        function filterUniversities(region) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-enstp-navy', 'text-white');
+                btn.classList.add('text-enstp-navy');
+            });
+            event.target.classList.add('active', 'bg-enstp-navy', 'text-white');
+            event.target.classList.remove('text-enstp-navy');
+            
+            const cards = document.querySelectorAll('#coursesUniversitiesGrid .university-card-new');
+            cards.forEach(card => {
+                if (region === 'all' || card.getAttribute('data-region') === region) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Video Categories
+        function populateVideoCategories() {
+            const grid = document.getElementById('videoCategories');
+            if (!grid) return;
+            
+            videoCategories.forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'video-category-card';
+                card.onclick = () => showVideosByCategory(cat);
+                card.innerHTML = `
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} text-white flex items-center justify-center text-2xl mb-4 mx-auto">
+                        <i class="fas ${cat.icon}"></i>
+                    </div>
+                    <h3 class="font-bold text-center text-enstp-navy mb-2">${cat.name}</h3>
+                    <p class="text-center text-gray-500 text-sm">${cat.count} vidéos</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showVideosByCategory(category) {
+            document.getElementById('videoCategories').classList.add('hidden');
+            document.getElementById('videosList').classList.remove('hidden');
+            document.getElementById('currentVideoCategory').textContent = category.name;
+            
+            const grid = document.getElementById('videosGrid');
+            grid.innerHTML = '';
+            
+            // Generate sample videos for category
+            for (let i = 1; i <= category.count; i++) {
+                const card = document.createElement('div');
+                card.className = 'video-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 cursor-pointer hover:shadow-xl transition-all';
+                card.onclick = () => window.open(`https://youtube.com/watch?v=example_${category.id}_${i}`, '_blank');
+                card.innerHTML = `
+                    <div class="relative h-48 bg-gradient-to-br ${category.color}">
+                        <div class="absolute inset-0 bg-black/40"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-play-circle text-5xl text-white/80"></i>
+                        </div>
+                        <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">15:30</div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold mb-2 line-clamp-2 text-enstp-navy">${category.name} - Partie ${i}</h4>
+                        <p class="text-sm text-gray-600 mb-2">ENSTP MEF Channel</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-eye mr-1"></i>${(Math.random() * 10 + 1).toFixed(1)}k vues</span>
+                            <span><i class="fas fa-clock mr-1"></i>il y a 2 mois</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function showVideoCategories() {
+            document.getElementById('videoCategories').classList.remove('hidden');
+            document.getElementById('videosList').classList.add('hidden');
+        }
+
+        // Books
+        function populateBooks() {
+            const grid = document.getElementById('booksGrid');
+            if (!grid) return;
+            
+            booksData.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition-all book-card';
+                card.setAttribute('data-uni', book.uni);
+                card.innerHTML = `
+                    <div class="h-48 bg-gradient-to-br ${book.color} flex items-center justify-center relative overflow-hidden">
+                        <i class="fas fa-book text-6xl text-white/30 group-hover:scale-110 transition-transform duration-500"></i>
+                        <div class="absolute top-4 right-4 px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-bold rounded-full">${book.uni}</div>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-xs text-enstp-gold font-semibold">${book.type}</span>
+                        <h3 class="font-bold text-lg mb-2 line-clamp-2 text-enstp-navy">${book.title}</h3>
+                        <p class="text-gray-600 text-sm mb-4">${book.author}</p>
+                        <button onclick="openPDF('${book.file}', '${book.title}')" class="w-full py-2 rounded-lg bg-enstp-navy text-white font-semibold hover:bg-opacity-90">
+                            <i class="fas fa-eye mr-2"></i>Consulter PDF
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterBooks(uni) {
+            document.querySelectorAll('#libraryUniversityFilter button').forEach(btn => {
+                btn.classList.remove('bg-enstp-navy', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            event.target.classList.remove('bg-gray-100', 'text-gray-700');
+            event.target.classList.add('bg-enstp-navy', 'text-white');
+            
+            const cards = document.querySelectorAll('.book-card');
+            cards.forEach(card => {
+                if (uni === 'all' || card.getAttribute('data-uni') === uni) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // TP Code Tabs
+        function switchCodeTab(lang) {
+            document.querySelectorAll('.code-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.code-content').forEach(content => content.classList.add('hidden'));
+            
+            event.target.closest('.code-tab').classList.add('active');
+            document.getElementById(`code-${lang}`).classList.remove('hidden');
+        }
+
+        function downloadCode(filePath) {
+            alert(`Téléchargement de ${filePath}...`);
+            // In real implementation, this would trigger actual file download
+        }
+
+        // AI Chat
+        function handleAIInput(e) {
+            if (e.key === 'Enter') sendAIMessage();
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const box = document.getElementById('aiChatBox');
+            
+            const userDiv = document.createElement('div');
+            userDiv.className = 'flex items-start space-x-3 flex-row-reverse';
+            userDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-enstp-navy flex-shrink-0 flex items-center justify-center"><i class="fas fa-user text-white text-xs"></i></div>
+                <div class="bg-enstp-navy text-white rounded-2xl rounded-tr-none p-4 max-w-[80%] text-sm">${message}</div>
+            `;
+            box.appendChild(userDiv);
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            setTimeout(() => {
+                const responses = [
+                    "Pour calculer la matrice de rigidité: [k] = (EA/L) × [[1, -1], [-1, 1]]",
+                    "Les conditions aux limites essentielles imposent les déplacements.",
+                    "Souhaitez-vous une simulation 3D ?",
+                    "Vérifions votre assemblage..."
+                ];
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'flex items-start space-x-3';
+                aiDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-enstp-gold flex-shrink-0 flex items-center justify-center"><i class="fas fa-robot text-white text-xs"></i></div>
+                    <div class="bg-white/10 text-white rounded-2xl rounded-tl-none p-4 max-w-[80%] text-sm">${responses[Math.floor(Math.random() * responses.length)]}</div>
+                `;
+                box.appendChild(aiDiv);
+                box.scrollTop = box.scrollHeight;
+            }, 1000);
+        }
+// TP Mode Switcher
+function showTPMode(tpNumber, mode) {
+    // Hide all content for this TP
+    document.querySelectorAll(`.tp-content-${tpNumber}`).forEach(el => {
+        el.classList.add('hidden');
+    });
+    
+    // Show selected content
+    document.getElementById(`tp-content-${tpNumber}-${mode}`).classList.remove('hidden');
+    
+    // Update tab styles
+    ['web', 'youtube', 'pdf'].forEach(m => {
+        const tab = document.querySelector(`.tp-tab-${tpNumber}-${m}`);
+        if (m === mode) {
+            tab.classList.remove('text-gray-500', 'hover:text-enstp-navy');
+            tab.classList.add('bg-white', 'text-enstp-navy', 'shadow-sm');
+        } else {
+            tab.classList.add('text-gray-500', 'hover:text-enstp-navy');
+            tab.classList.remove('bg-white', 'text-enstp-navy', 'shadow-sm');
+        }
+    });
+}
+        // Utility functions
+        function updateAttendanceTable() {
+            const specialty = document.getElementById('attSpecialty').value;
+            const group = document.getElementById('attGroup').value;
+            const semester = document.getElementById('attSemester').value;
+            document.getElementById('attTableTitle').textContent = `${specialty} - ${group} - ${semester.toUpperCase()}`;
+        }
+
+        function updateGradesTable() {
+            updateTeacherInfo();
+        }
+    </script>
+</body>
+</html>

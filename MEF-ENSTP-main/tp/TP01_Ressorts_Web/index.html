@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Corrigé Expert MEF - ENSTP</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; line-height: 1.6; color: #000; max-width: 950px; margin: auto; padding: 20px; }
+        .official-header { display: flex; align-items: center; justify-content: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .logo-box { flex: 1; text-align: left; }
+        .logo-box img { max-width: 120px; height: auto; }
+        .header-text { flex: 4; text-align: center; }
+        .republique { font-weight: bold; font-size: 1.1em; text-transform: uppercase; margin-bottom: 5px; }
+        .ecole-name { font-weight: bold; font-size: 1.2em; margin: 5px 0; }
+        .title-frame { border: 1.5px solid #000; background: #f9f9f9; text-align: center; padding: 15px; margin: 20px 0; }
+        h2 { border-left: 6px solid #000; padding-left: 15px; text-transform: uppercase; font-size: 1.2em; margin-top: 40px; background: #f2f2f2; border-bottom: 1px solid #ccc; }
+        h3 { color: #2c3e50; border-bottom: 1px solid #34495e; display: inline-block; margin-top: 20px; margin-bottom: 10px; }
+        .math-expr { font-family: "Cambria Math", serif; font-style: italic; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10.5pt; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+        th { background: #f2f2f2; }
+        .matlab-container { background: #fdfdfd; color: #24292e; padding: 20px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; overflow-x: auto; margin: 15px 0; line-height: 1.5; border-left: 5px solid #28a745; }
+        .comment { color: #6a737d; font-style: italic; }
+        .keyword { color: #d73a49; font-weight: bold; }
+        .string { color: #032f62; }
+        .function { color: #6f42c1; }
+        .interpretation-box { background: #fff; border: 1px dashed #000; padding: 15px; margin-top: 15px; }
+        .page-break { page-break-before: always; }
+        @media print { .no-print { display: none; } body { padding: 0; margin: 0; } .matlab-container { border: 1px solid #000; background: #fff; } }
+    </style>
+</head>
+<body>
+
+    <div class="official-header">
+        <div class="logo-box"><img src="logo_enstp.png" alt="Logo ENSTP"></div>
+        <div class="header-text">
+            <div class="republique">République Algérienne Démocratique et Populaire</div>
+            <div>Ministère de l’Enseignement Supérieur et de la Recherche Scientifique</div>
+            <div class="ecole-name">المدرسة الوطنية العليا للأشغال العمومية<br>ENSTP – Francis Jeanson</div>
+        </div>
+        <div class="logo-box" style="text-align:right;"><img src="logo_enstp.png" alt="Logo ENSTP"></div>
+    </div>
+
+    <div class="title-frame">
+        <h1 style="margin:0; font-size: 1.5em;">MODULE : MÉTHODE DES ÉLÉMENTS FINIS 1</h1>
+        <p style="margin:5px 0;">SÉRIE N°01 : ANALYSE DES SYSTÈMES DE RESSORTS</p>
+        <p style="font-style: italic;">Développé pour l'impression PDF - Interface de Code Claire</p>
+    </div>
+
+    <h2>I. EXERCICE 01 : ANALYSE D'UN SYSTÈME À 3 NŒUDS</h2>
+    <h3>Annonce de l'exercice</h3>
+    <p>Considérons un système composé de deux ressorts de raideurs <span class="math-expr">k₁</span> et <span class="math-expr">k₂</span>. Le but est de construire la matrice de rigidité globale et d'exprimer les déplacements en fonction des forces nodales.</p>
+    
+    <h3>Code MATLAB Détaillé</h3>
+    <div class="matlab-container">
+<pre>
+<span class="comment">% --- EXERCICE 1 : CALCUL SYMBOLIQUE ---</span>
+syms k1 k2 F1 F2 F3 u1 u2 u3
+
+<span class="comment">% 1. Définition des matrices de rigidité élémentaires</span>
+k_elem1 = k1 * [1 -1; -1 1];
+k_elem2 = k2 * [1 -1; -1 1];
+
+<span class="comment">% 2. Initialisation de la matrice de rigidité globale K (3x3)</span>
+K = zeros(3,3);
+
+<span class="comment">% 3. Assemblage des éléments</span>
+<span class="comment">% Elément 1 connecté aux noeuds 1 et 2</span>
+K(1:2, 1:2) = K(1:2, 1:2) + k_elem1;
+<span class="comment">% Elément 2 connecté aux noeuds 2 et 3</span>
+K(2:3, 2:3) = K(2:3, 2:3) + k_elem2;
+
+disp(<span class="string">'La Matrice de Rigidité Globale [K] est :'</span>);
+disp(K);
+</pre>
+    </div>
+
+    <div class="page-break"></div>
+    <h2>II. EXERCICE 02 : SYSTÈME SOUMIS À UNE CHARGE PONCTUELLE</h2>
+    <h3>Annonce de l'exercice</h3>
+    <p>Système de trois ressorts (<span class="math-expr">k₁=100, k₂=200, k₃=100 N/mm</span>) encastré aux extrémités (<span class="math-expr">u₁=u₄=0</span>) avec une force <span class="math-expr">P=500 N</span> au nœud 2.</p>
+    
+    <h3>Code MATLAB Détaillé</h3>
+    <div class="matlab-container">
+<pre>
+<span class="comment">% --- EXERCICE 2 : RÉSOLUTION NUMÉRIQUE ---</span>
+k1 = 100; k2 = 200; k3 = 100; P = 500;
+
+<span class="comment">% 1. Matrice de Rigidité Globale 4x4</span>
+K_glob = [ k1    -k1      0       0  ;
+          -k1   k1+k2   -k2       0  ;
+            0    -k2    k2+k3   -k3 ;
+            0      0     -k3     k3 ];
+
+<span class="comment">% 2. Application des conditions aux limites (u1=0, u4=0)</span>
+<span class="comment">% Suppression des lignes et colonnes 1 et 4 (Partitionnement)</span>
+K_red = K_glob(2:3, 2:3);
+F_red = [P; 0]; <span class="comment">% Charge au noeud 2, aucune au noeud 3</span>
+
+<span class="comment">% 3. Calcul des déplacements inconnus</span>
+U_libre = K_red \ F_red;
+U_final = [0; U_libre; 0];
+
+<span class="comment">% 4. Calcul des réactions d'appui</span>
+Reactions = K_glob * U_final;
+</pre>
+    </div>
+    <h3>Résultats et Tableaux</h3>
+    <table>
+        <tr><th>Nœud</th><th>Déplacement (mm)</th><th>Réactions / Forces (N)</th></tr>
+        <tr><td>1 (Appui)</td><td>0.0000</td><td>-375.00</td></tr>
+        <tr><td>2 (Charge)</td><td>3.7500</td><td>500.00</td></tr>
+        <tr><td>3</td><td>1.2500</td><td>0.00</td></tr>
+        <tr><td>4 (Appui)</td><td>0.0000</td><td>-125.00</td></tr>
+    </table>
+
+    <div class="page-break"></div>
+    <h2>III. EXERCICE 03 : SYSTÈME À RAIDEURS MULTIPLES</h2>
+    <h3>Annonce de l'exercice</h3>
+    <p>On étudie l'influence de raideurs variables : <span class="math-expr">k₁=k, k₂=2k, k₃=3k</span>. Le système est bloqué aux nœuds 1 et 2.</p>
+    
+    <h3>Code MATLAB Détaillé</h3>
+    <div class="matlab-container">
+<pre>
+<span class="comment">% --- EXERCICE 3 : INFLUENCE DE LA RAIDEUR ---</span>
+syms k F
+<span class="comment">% On considère uniquement les noeuds libres 3 et 4</span>
+<span class="comment">% K global réduit tenant compte de u1=u2=0</span>
+K_red = [ (2*k + 3*k) , -3*k ;
+             -3*k     ,  3*k ];
+
+<span class="comment">% Force appliquée au noeud 4</span>
+F_vec = [0; F];
+U_sol = K_red \ F_vec;
+
+<span class="comment">% Effort interne Elément 3 (entre noeud 3 et 4)</span>
+N3 = 3*k * (U_sol(2) - U_sol(1));
+disp(<span class="string">'Déplacement du noeud 4 :'</span>); disp(U_sol(2));
+</pre>
+    </div>
+
+    <div class="page-break"></div>
+    <h2>IV. EXERCICE 04 : ANALYSE AVEC DÉPLACEMENT IMPOSÉ</h2>
+    <h3>Annonce de l'exercice</h3>
+    <p>Soit 4 ressorts identiques (<span class="math-expr">k=200 kN/m</span>). On impose un déplacement <span class="math-expr">δ=20 mm</span> au nœud 5 alors que le nœud 1 est fixe.</p>
+    
+    <h3>Code MATLAB Détaillé</h3>
+    <div class="matlab-container">
+<pre>
+<span class="comment">% --- EXERCICE 4 : DÉPLACEMENT IMPOSÉ ---</span>
+k = 200; delta = 0.02; <span class="comment">% Unités : kN/m et m</span>
+
+<span class="comment">% 1. Matrice de Rigidité Globale (5x5)</span>
+K = k * [1 -1 0 0 0; -1 2 -1 0 0; 0 -1 2 -1 0; 0 0 -1 2 -1; 0 0 0 -1 1];
+
+<span class="comment">% 2. Partitionnement [Kii Kic; Kci Kcc]</span>
+Kii = K(2:4, 2:4); <span class="comment">% Noeuds internes libres 2, 3, 4</span>
+Kic = K(2:4, 5);   <span class="comment">% Relation entre noeuds libres et noeud imposé</span>
+
+<span class="comment">% 3. Calcul : Kii*ui + Kic*uc = Fi (avec Fi=0)</span>
+ui = Kii \ (-Kic * delta);
+U_total = [0; ui; delta];
+
+<span class="comment">% 4. Forces élémentaires : f = k * (uj - ui)</span>
+f1 = k*(U_total(2)-U_total(1));
+</pre>
+    </div>
+    <h3>Schéma des Déplacements et Déformations</h3>
+    <table>
+        <tr><th>Nœud i</th><th>u_i (mm)</th><th>Déformation Δu (mm)</th><th>Effort Interne (N)</th></tr>
+        <tr><td>1</td><td>0.00</td><td>-</td><td>-</td></tr>
+        <tr><td>2</td><td>5.00</td><td>5.00</td><td>1000</td></tr>
+        <tr><td>3</td><td>10.00</td><td>5.00</td><td>1000</td></tr>
+        <tr><td>4</td><td>15.00</td><td>5.00</td><td>1000</td></tr>
+        <tr><td>5</td><td>20.00</td><td>5.00</td><td>1000</td></tr>
+    </table>
+
+    <div class="page-break"></div>
+    <h2>V. EXERCICE 05 : SYSTÈME VERTICAL SYMÉTRIQUE</h2>
+    <h3>Annonce de l'exercice</h3>
+    <p>Étude d'un assemblage de ressorts identiques fixés aux deux extrémités. On cherche à automatiser la construction de la matrice pour n éléments.</p>
+    
+    <h3>Code MATLAB Détaillé</h3>
+    <div class="matlab-container">
+<pre>
+<span class="comment">% --- EXERCICE 5 : AUTOMATISATION ---</span>
+n_ressorts = 5; k = 150;
+K_size = n_ressorts + 1;
+K_glob = zeros(K_size);
+
+<span class="comment">% Boucle d'assemblage automatique</span>
+for i = 1:n_ressorts
+    ke = k * [1 -1; -1 1];
+    K_glob(i:i+1, i:i+1) = K_glob(i:i+1, i:i+1) + ke;
+end
+
+<span class="comment">% Conditions aux limites : Noeuds 1 et (n+1) fixes</span>
+K_red = K_glob(2:end-1, 2:end-1);
+F_red = 10 * ones(size(K_red, 1), 1); <span class="comment">% Force exemple de 10N sur chaque noeud</span>
+U_red = K_red \ F_red;
+
+<span class="comment">% Affichage du profil de déplacement</span>
+plot(0:n_ressorts, [0; U_red; 0], <span class="string">'-ro'</span>);
+grid on; xlabel(<span class="string">'Numéro du Nœud'</span>); ylabel(<span class="string">'Déplacement'</span>);
+</pre>
+    </div>
+
+    <div class="interpretation-box">
+        <h3>Synthèse Finale :</h3>
+        <p>1. <strong>Diagrammes de déplacement :</strong> Ils sont continus et linéaires par morceaux, atteignant leur extremum au centre ou au point d'application des charges.</p>
+        <p>2. <strong>Contraintes/Efforts :</strong> Dans un système de ressorts en série pure sans charges intermédiaires, l'effort est constant (Exemple 4). Lorsqu'une force est appliquée au milieu, on observe un "saut" dans le diagramme des efforts (Exemple 2).</p>
+    </div>
+
+    <footer style="margin-top: 50px; text-align: center; font-size: 0.9em; border-top: 1px solid #000; padding-top: 10px;">
+        ENSTP - Série de TD N°01 - Corrigé MEF 1 - Année 2024/2025
+    </footer>
+
+</body>
+</html>
