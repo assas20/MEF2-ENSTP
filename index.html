@@ -2305,44 +2305,120 @@ def stiffness_matrix(E, A, L):
             { id: 'isoparametrique', name: 'Formulation isoparamétrique', icon: 'fa-cube', color: 'from-indigo-500 to-indigo-700', count: 6 }
         ];
 // VOS VIDÉOS YOUTUBE - Ajoutez-les ici
+// VOS VIDÉOS YOUTUBE - Toutes les catégories
 const mesVideos = {
+    // 1. Éléments Ressorts
     'ressorts': [
         { 
-            id: 'Ce915wwaMCQ',  // ← Remplacez par l'ID de votre vidéo YouTube
-            titre: 'Cours MEF - Les ressorts Partie 1',
+            id: 'Ce915wwaMCQ',
+            titre: 'Exercices fastoches sur les Éléments Finis Ressorts à 1D',
             duree: '15:30'
         },
         { 
-            id: 'dxtmAOz1DFM',  // ← Deuxième vidéo
-            titre: 'Cours MEF - Les ressorts Partie 2', 
-            duree: '20:45'
-        }
-        
-        
+            id: 'dxtmAOz1DFM&list=PLv_ZsZmTHkvywpxavkXjernMnqnrsqz78',
+            titre: 'Problèmes de ressorts par éléments finis | Analyse par éléments finis',
+            duree: '16:27'
+        },
+        { 
+            id: 'b2Asq-gbizQ&list=PLv_ZsZmTHkvywpxavkXjernMnqnrsqz78&index=2',
+            titre: 'FEM Spring Problems | Finite Element Methods on Spring Elements Problem | Spring Problems Physics',
+            duree: '14:41'
+        },
+    {
+        id: 'YqpIEDWJCwc',
+        titre: 'Élément de ressort 1D - Exemple',
+        duree: '09:46'
+    },
+    {
+        id: 'T6qMGdGuJvY',
+        titre: 'Spring Elements Problems in FEM | Spring Problems Physics | Spring problems mechanics',
+        duree: '17:01'
+    }
     ],
+    
+    // 2. Éléments Barres
     'barres': [
         {
-            id: 'Ydg-gutheLA',
-            titre: 'Cours MEF - Éléments barres',
+            id: 'DEF111ABC222',
+            titre: 'Cours MEF - Éléments barres en traction',
             duree: '25:10'
-        }
-         
-    ]
-'barres en treillis': [
+        },
         {
-            id: 'kOdjtriIxY0',
-            titre: 'Cours MEF - Éléments barres en treillis - Partie 1',
-            duree: '25:10'
+            id: 'GHI333JKL444',
+            titre: 'Exercice corrigé - Structure avec barres',
+            duree: '30:20'
         }
-    ]
+    ],
+    
+    // 3. Treillis
+    'treillis': [
+        {
+            id: 'TRE111ILL222',
+            titre: 'Treillis plans - Méthode des nœuds',
+            duree: '28:00'
+        },
+        {
+            id: 'TRE333ILL444',
+            titre: 'Treillis spatiaux 3D - Application',
+            duree: '35:15'
+        }
+    ],
+    
+    // 4. Poutres
     'poutres': [
         {
-            id: 'TL_Dh8KDVzg',
-            titre: 'Cours MEF - Éléments poutres - Partie 1',
-            duree: '25:10'
+            id: 'POU111TRE222',
+            titre: 'Éléments poutres - Théorie de Euler-Bernoulli',
+            duree: '32:00'
+        },
+        {
+            id: 'POU333TRE444',
+            titre: 'Flexion des poutres - Exercice complet',
+            duree: '40:30'
+        }
+    ],
+    
+    // 5. Structures 2D
+    '2d': [
+        {
+            id: 'DEU111XYY222',
+            titre: 'Contraintes planes et déformations planes',
+            duree: '27:45'
+        },
+        {
+            id: 'DEU333XYY444',
+            titre: 'Éléments finis triangulaires - T3 et T6',
+            duree: '33:20'
+        }
+    ],
+    
+    // 6. Transformation géométrique
+    'transformation': [
+        {
+            id: 'TRA111NSF222',
+            titre: 'Fonctions de forme - Introduction',
+            duree: '20:15'
+        },
+        {
+            id: 'TRA333NSF444',
+            titre: 'Transformation isoparamétrique',
+            duree: '29:30'
+        }
+    ],
+    
+    // 7. Isoparamétrique
+    'isoparametrique': [
+        {
+            id: 'ISO111PAR222',
+            titre: 'Formulation isoparamétrique complète',
+            duree: '38:00'
+        },
+        {
+            id: 'ISO333PAR444',
+            titre: 'Intégration numérique - Points de Gauss',
+            duree: '26:45'
         }
     ]
-    // Ajoutez d'autres catégories si besoin...
 };
         const booksData = [
             { title: "Modélisation des structures en matériaux composites par la méthode des éléments finis", author: "Assas Taqiyeddine", uni: "U.Biskra", type: "Référence principale", color: "from-enstp-navy to-enstp-blue", file: "books/dhatt_touzot_tome1.pdf" },
