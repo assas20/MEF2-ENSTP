@@ -2304,7 +2304,29 @@ def stiffness_matrix(E, A, L):
             { id: 'transformation', name: 'Transformation géométrique et fonctions de forme', icon: 'fa-shapes', color: 'from-teal-500 to-teal-700', count: 5 },
             { id: 'isoparametrique', name: 'Formulation isoparamétrique', icon: 'fa-cube', color: 'from-indigo-500 to-indigo-700', count: 6 }
         ];
-
+// VOS VIDÉOS YOUTUBE - Ajoutez-les ici
+const mesVideos = {
+    'ressorts': [
+        { 
+            id: 'Ce915wwaMCQ',  // ← Remplacez par l'ID de votre vidéo YouTube
+            titre: 'Cours MEF - Les ressorts Partie 1',
+            duree: '15:30'
+        },
+        { 
+            id: 'XYZ789GHI012',  // ← Deuxième vidéo
+            titre: 'Cours MEF - Les ressorts Partie 2', 
+            duree: '20:45'
+        }
+    ],
+    'barres': [
+        {
+            id: 'DEF456ABC123',
+            titre: 'Cours MEF - Éléments barres',
+            duree: '25:10'
+        }
+    ]
+    // Ajoutez d'autres catégories si besoin...
+};
         const booksData = [
             { title: "Modélisation des structures en matériaux composites par la méthode des éléments finis", author: "Assas Taqiyeddine", uni: "U.Biskra", type: "Référence principale", color: "from-enstp-navy to-enstp-blue", file: "books/dhatt_touzot_tome1.pdf" },
             { title: "A First Course in the Finite Element Method", author: "Dr. Daryl L. Logan", uni: "University of Wisconsin-Platteville", type: "SIXTH édition", color: "from-blue-600 to-blue-800", file: "books/bathe_fem.pdf" },
@@ -3102,38 +3124,41 @@ def stiffness_matrix(E, A, L):
         }
 
         function showVideosByCategory(category) {
-            document.getElementById('videoCategories').classList.add('hidden');
-            document.getElementById('videosList').classList.remove('hidden');
-            document.getElementById('currentVideoCategory').textContent = category.name;
-            
-            const grid = document.getElementById('videosGrid');
-            grid.innerHTML = '';
-            
-            // Generate sample videos for category
-            for (let i = 1; i <= category.count; i++) {
-                const card = document.createElement('div');
-                card.className = 'video-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 cursor-pointer hover:shadow-xl transition-all';
-                card.onclick = () => window.open(`https://youtube.com/watch?v=example_${category.id}_${i}`, '_blank');
-                card.innerHTML = `
-                    <div class="relative h-48 bg-gradient-to-br ${category.color}">
-                        <div class="absolute inset-0 bg-black/40"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <i class="fas fa-play-circle text-5xl text-white/80"></i>
-                        </div>
-                        <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">15:30</div>
+    // Cache les catégories, montre la liste
+    document.getElementById('videoCategories').classList.add('hidden');
+    document.getElementById('videosList').classList.remove('hidden');
+    document.getElementById('currentVideoCategory').textContent = category.name;
+    
+    const grille = document.getElementById('videosGrid');
+    grille.innerHTML = '';
+    
+    // Récupère les vidéos de cette catégorie
+    const videos = mesVideos[category.id] || [];
+    
+    // Si pas de vidéos
+    if (videos.length === 0) {
+        grille.innerHTML = '<p class="text-center text-gray-500 py-8">Aucune vidéo pour le moment</p>';
+        return;
+    }
+    
+    // Affiche chaque vidéo
+    videos.forEach(video => {
+        grille.innerHTML += `
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl" onclick="window.open('https://youtube.com/watch?v=${video.id}', '_blank')">
+                <div class="relative h-48 bg-gray-900">
+                    <img src="https://img.youtube.com/vi/${video.id}/mqdefault.jpg" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-play-circle text-5xl text-white"></i>
                     </div>
-                    <div class="p-4">
-                        <h4 class="font-bold mb-2 line-clamp-2 text-enstp-navy">${category.name} - Partie ${i}</h4>
-                        <p class="text-sm text-gray-600 mb-2">ENSTP MEF Channel</p>
-                        <div class="flex items-center justify-between text-xs text-gray-500">
-                            <span><i class="fas fa-eye mr-1"></i>${(Math.random() * 10 + 1).toFixed(1)}k vues</span>
-                            <span><i class="fas fa-clock mr-1"></i>il y a 2 mois</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            }
-        }
+                    <span class="absolute bottom-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">${video.duree}</span>
+                </div>
+                <div class="p-4">
+                    <h4 class="font-bold text-enstp-navy">${video.titre}</h4>
+                </div>
+            </div>
+        `;
+    });
+}
 
         function showVideoCategories() {
             document.getElementById('videoCategories').classList.remove('hidden');
